@@ -63,6 +63,7 @@ exif/
 ├── requirements.txt    # 의존성 패키지 목록 (streamlit, pillow, cairosvg, svglib)
 ├── .gitignore          # Git 제외 목록
 ├── README.md           # 프로젝트 안내서
+├── CHANGELOG.md        # 버전별 변경 사항 히스토리
 └── logos/              # 각 브랜드별 고해상도 투명 PNG 및 SVG 로고
     ├── sony_alpha_*.png
     ├── sony_*.png
