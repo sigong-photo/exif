@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXIF Frame Generator - 사진 메타데이터 프레임 생성기</title>
+    <meta name="description" content="카메라 사진의 EXIF 메타데이터를 분석하여 세련된 사진 프레임과 브랜드 로고를 자동으로 합성해 주는 무료 웹 도구">
+    <!-- Google Fonts & Pretendard -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: rgba(22, 27, 34, 0.85);
+            --card-border: rgba(48, 54, 61, 0.7);
+            --primary: #58a6ff;
+            --primary-hover: #1f6feb;
+            --accent: #f78166;
+            --text-main: #f0f6fc;
+            --text-sub: #8b949e;
+            --input-bg: #090d12;
+            --input-border: #30363d;
+            --radius: 14px;
+            --transition: all 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Pretendard", "Outfit", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background: linear-gradient(135deg, #090d12 0%, #0d1117 50%, #161b22 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 30px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #58a6ff, #a371f7, #f78166);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            color: var(--text-sub);
+            font-size: 1rem;
+        }
+
+        /* Main Grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 1080px) {
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphism Card */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
+        }
+
+        /* Upload Zone */
+        .dropzone {
+            border: 2px dashed #388bfd;
+            border-radius: var(--radius);
+            padding: 36px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(56, 139, 253, 0.04);
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            background: rgba(56, 139, 253, 0.12);
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+        }
+
+        .dropzone-icon {
+            font-size: 2.6rem;
+            margin-bottom: 12px;
+        }
+
+        .dropzone p {
+            color: var(--text-main);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .dropzone span {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+        }
+
+        /* Section Accordions */
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 10px;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        }
+
+        /* Range Sliders */
+        .slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-wrap input[type="range"] {
+            flex: 1;
+            height: 6px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .slider-val {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+            min-width: 44px;
+            text-align: right;
+        }
+
+        /* Color Picker & Presets */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .color-chip {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .color-chip:hover {
+            transform: scale(1.15);
+        }
+
+        .color-chip.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Checkbox Switch */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Preview Side (Right) */
+        .preview-sticky {
+            position: sticky;
+            top: 24px;
+        }
+
+        .preview-box {
+            background: #05070a;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 480px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            max-height: 72vh;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            object-fit: contain;
+            display: none;
+        }
+
+        .placeholder-text {
+            text-align: center;
+            color: var(--text-sub);
+        }
+
+        .placeholder-text svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #1f6feb 0%, #238636 100%);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: 0 4px 14px rgba(35, 134, 54, 0.4);
+            margin-top: 16px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(35, 134, 54, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Meta Tag Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            background: rgba(88, 166, 255, 0.15);
+            color: var(--primary);
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📸 EXIF Frame Generator</h1>
+        <p>사진 메타데이터와 공식 브랜드 로고를 합성해 감성적인 프레임을 완성하세요 (100% 브라우저 처리 / 서버 전송 없음)</p>
+    </header>
+
+    <div class="app-grid">
+        <!-- Control Panel (Left) -->
+        <div class="controls">
+            <!-- Upload Box -->
+            <div class="card">
+                <div class="dropzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <div class="dropzone-icon">📷</div>
+                    <p>사진을 드래그하거나 클릭하여 업로드</p>
+                    <span>JPG, JPEG, PNG (고해상도 원본 지원)</span>
+                    <input type="file" id="fileInput" accept="image/jpeg, image/png" style="display:none">
+                </div>
+            </div>
+
+            <!-- Parameters Card -->
+            <div class="card" id="settingsCard">
+                <div class="section-title">⚙️ 카메라 및 렌즈 정보</div>
+                <div class="form-group">
+                    <label>카메라 모델</label>
+                    <input type="text" id="cameraInput" placeholder="예: ILCE-1M2">
+                </div>
+                <div class="form-group">
+                    <label>렌즈 모델</label>
+                    <input type="text" id="lensInput" placeholder="예: 100-400mm F5-6.3 DG DN OS | Contemporary 020">
+                </div>
+
+                <div class="section-title" style="margin-top: 24px;">⏱️ 촬영 세부 설정</div>
+                <div class="form-row">
+                    <div>
+                        <label>초점거리</label>
+                        <input type="text" id="focalInput" placeholder="400mm">
+                    </div>
+                    <div>
+                        <label>조리개 (F)</label>
+                        <input type="text" id="apertureInput" placeholder="f/18">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>셔터스피드</label>
+                        <input type="text" id="shutterInput" placeholder="1/80s">
+                    </div>
+                    <div>
+                        <label>ISO 감도</label>
+                        <input type="text" id="isoInput" placeholder="ISO 100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>촬영 설정 최종 요약</label>
+                    <input type="text" id="settingsFinalInput" placeholder="400mm  ·  f/18  ·  1/80s  ·  ISO 100">
+                </div>
+
+                <div class="section-title" style="margin-top: 24px;">✨ 브랜드 로고 프리셋</div>
+                <div class="form-group">
+                    <label>제조사 로고 선택</label>
+                    <select id="logoSelect">
+                        <option value="">(로고 없음)</option>
+                        <optgroup label="소니 (SONY)">
+                            <option value="logos/sony_alpha_orange.png">SONY α (소니 알파 오렌지 시그니처)</option>
+                            <option value="logos/sony_alpha_black.png">SONY α (소니 알파 블랙)</option>
+                            <option value="logos/sony_alpha_white.png">SONY α (소니 알파 화이트)</option>
+                            <option value="logos/sony_black.png">SONY (소니 워드마크 블랙)</option>
+                            <option value="logos/sony_white.png">SONY (소니 워드마크 화이트)</option>
+                        </optgroup>
+                        <optgroup label="시그마 (SIGMA)">
+                            <option value="logos/sigma_black.png">SIGMA (공식 블랙)</option>
+                            <option value="logos/sigma_red.png">SIGMA (시그니처 레드)</option>
+                            <option value="logos/sigma_white.png">SIGMA (공식 화이트)</option>
+                        </optgroup>
+                        <optgroup label="라이카 (LEICA)">
+                            <option value="logos/leica_red.png">LEICA (라이카 레드 닷)</option>
+                            <option value="logos/leica_black.png">LEICA (라이카 블랙)</option>
+                            <option value="logos/leica_white.png">LEICA (라이카 화이트)</option>
+                        </optgroup>
+                        <optgroup label="핫셀블라드 (HASSELBLAD)">
+                            <option value="logos/hasselblad_black.png">HASSELBLAD (핫셀블라드 블랙)</option>
+                            <option value="logos/hasselblad_white.png">HASSELBLAD (핫셀블라드 화이트)</option>
+                        </optgroup>
+                        <optgroup label="니콘 (NIKON)">
+                            <option value="logos/nikon_black.png">NIKON (니콘 워드마크 블랙)</option>
+                            <option value="logos/nikon_white.png">NIKON (니콘 워드마크 화이트)</option>
+                            <option value="logos/nikon_color.png">NIKON (니콘 옐로우 엠블럼)</option>
+                        </optgroup>
+                        <optgroup label="캐논 (CANON)">
+                            <option value="logos/canon_red.png">CANON (캐논 시그니처 레드)</option>
+                            <option value="logos/canon_black.png">CANON (캐논 블랙)</option>
+                            <option value="logos/canon_white.png">CANON (캐논 화이트)</option>
+                        </optgroup>
+                        <optgroup label="후지필름 (FUJIFILM)">
+                            <option value="logos/fujifilm_color.png">FUJIFILM (오리지널 레드포인트)</option>
+                            <option value="logos/fujifilm_white_accent.png">FUJIFILM (화이트 레드포인트)</option>
+                            <option value="logos/fujifilm_black.png">FUJIFILM (모노 블랙)</option>
+                            <option value="logos/fujifilm_white.png">FUJIFILM (모노 화이트)</option>
+                        </optgroup>
+                        <optgroup label="탐론 (TAMRON)">
+                            <option value="logos/tamron_black.png">TAMRON (탐론 공식 블랙)</option>
+                            <option value="logos/tamron_white.png">TAMRON (탐론 화이트)</option>
+                            <option value="logos/tamron_color.png">TAMRON (탐론 블루 컬러)</option>
+                        </optgroup>
+                        <optgroup label="빌트록스 (VILTROX)">
+                            <option value="logos/viltrox_black.png">VILTROX (빌트록스 블랙)</option>
+                            <option value="logos/viltrox_white.png">VILTROX (빌트록스 화이트)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>로고 크기 배율</label>
+                    <div class="slider-wrap">
+                        <input type="range" id="logoScale" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span class="slider-val" id="logoScaleVal">1.0x</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 24px;">✍️ 커스텀 문구 & 워터마크</div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showCustomText">
+                    커스텀 문구 활성화
+                </label>
+                <div id="customTextPanel" style="display:none;">
+                    <div class="form-group">
+                        <label>문구 내용</label>
+                        <input type="text" id="customTextInput" placeholder="예: SIGMA, Photo by SIGONG">
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label>배치 위치</label>
+                            <select id="customTextPos">
+                                <option value="bottom_right">하단 프레임 - 우측 (로고 위치)</option>
+                                <option value="bottom_center">하단 프레임 - 중앙</option>
+                                <option value="bottom_left">하단 프레임 - 좌측</option>
+                                <option value="inside_br">사진 내부 - 우측 하단 (워터마크)</option>
+                                <option value="inside_bl">사진 내부 - 좌측 하단 (워터마크)</option>
+                                <option value="inside_tr">사진 내부 - 우측 상단</option>
+                                <option value="inside_tl">사진 내부 - 좌측 상단</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>문구 크기</label>
+                            <div class="slider-wrap">
+                                <input type="range" id="customTextSize" min="0.6" max="3.0" step="0.1" value="1.4">
+                                <span class="slider-val" id="customTextSizeVal">1.4x</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label>문구 색상</label>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="color" id="customTextColor" value="#E50012" style="width:42px; height:38px; border:none; cursor:pointer; border-radius:6px; background:none;">
+                                <div class="color-row">
+                                    <div class="color-chip" style="background:#E50012;" title="시그니처 레드" onclick="setCustomColor('#E50012')"></div>
+                                    <div class="color-chip" style="background:#111111;" title="블랙" onclick="setCustomColor('#111111')"></div>
+                                    <div class="color-chip" style="background:#FFFFFF;" title="화이트" onclick="setCustomColor('#FFFFFF')"></div>
+                                    <div class="color-chip" style="background:#D4AF37;" title="골드" onclick="setCustomColor('#D4AF37')"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label>스타일</label>
+                            <label class="checkbox-label" style="margin-top: 8px;">
+                                <input type="checkbox" id="customTextBold" checked>
+                                굵게 (Bold)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 24px;">🎨 프레임 디자인 및 여백</div>
+                <div class="form-row">
+                    <div>
+                        <label>프레임 테마</label>
+                        <select id="themeSelect">
+                            <option value="white">화이트 (White)</option>
+                            <option value="black">블랙 (Black)</option>
+                            <option value="darkgray">다크 그레이 (Dark Gray)</option>
+                            <option value="cream">크림 (Warm Cream)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>레이아웃 스타일</label>
+                        <select id="layoutSelect">
+                            <option value="modern">좌우 분할 (Modern)</option>
+                            <option value="standard">2단/3단 표준 (Standard)</option>
+                            <option value="minimal">중앙 정렬 (Minimal)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>글자 크기 배율</label>
+                    <div class="slider-wrap">
+                        <input type="range" id="fontScale" min="0.6" max="2.5" step="0.1" value="1.2">
+                        <span class="slider-val" id="fontScaleVal">1.2x</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label>하단 여백 비율</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="bottomMargin" min="5" max="20" step="1" value="9">
+                            <span class="slider-val" id="bottomMarginVal">9%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label>테두리 여백 비율</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="sideMargin" min="0" max="10" step="1" value="3">
+                            <span class="slider-val" id="sideMarginVal">3%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel (Right) -->
+        <div class="preview-area">
+            <div class="card preview-sticky">
+                <div class="section-title" style="justify-content: space-between;">
+                    <span>🖼️ 실시간 완성 미리보기</span>
+                    <span id="imgInfoBadge" class="badge" style="display:none;"></span>
+                </div>
+
+                <div class="preview-box">
+                    <div class="spinner" id="loadingSpinner"></div>
+                    <div class="placeholder-text" id="placeholder">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v12h16V6H4zm3 8l3-3.86 2.14 2.57L15 11l4 5H5l2-2z"/></svg>
+                        <p>사진을 업로드하면 고해상도 프레임이 즉시 생성됩니다</p>
+                    </div>
+                    <canvas id="previewCanvas"></canvas>
+                </div>
+
+                <button class="btn-primary" id="downloadBtn" disabled>
+                    📥 초고화질 이미지 다운로드 (Original Quality)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/exifr.full.umd.js"></script>
+<script>
+    // App State
+    let originalImage = null;
+    let originalFileName = 'framed_photo.jpg';
+    let loadedLogoImg = null;
+    let currentLogoUrl = '';
+
+    // Elements
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const ctx = previewCanvas.getContext('2d');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const placeholder = document.getElementById('placeholder');
+    const spinner = document.getElementById('loadingSpinner');
+    const imgInfoBadge = document.getElementById('imgInfoBadge');
+
+    // Inputs
+    const cameraInput = document.getElementById('cameraInput');
+    const lensInput = document.getElementById('lensInput');
+    const focalInput = document.getElementById('focalInput');
+    const apertureInput = document.getElementById('apertureInput');
+    const shutterInput = document.getElementById('shutterInput');
+    const isoInput = document.getElementById('isoInput');
+    const settingsFinalInput = document.getElementById('settingsFinalInput');
+    const logoSelect = document.getElementById('logoSelect');
+    const logoScale = document.getElementById('logoScale');
+    const showCustomText = document.getElementById('showCustomText');
+    const customTextInput = document.getElementById('customTextInput');
+    const customTextPos = document.getElementById('customTextPos');
+    const customTextSize = document.getElementById('customTextSize');
+    const customTextColor = document.getElementById('customTextColor');
+    const customTextBold = document.getElementById('customTextBold');
+    const themeSelect = document.getElementById('themeSelect');
+    const layoutSelect = document.getElementById('layoutSelect');
+    const fontScale = document.getElementById('fontScale');
+    const bottomMargin = document.getElementById('bottomMargin');
+    const sideMargin = document.getElementById('sideMargin');
+
+    // Slider Listeners
+    function setupSlider(sliderId, valId, suffix = '') {
+        const slider = document.getElementById(sliderId);
+        const valSpan = document.getElementById(valId);
+        slider.addEventListener('input', () => {
+            valSpan.textContent = slider.value + suffix;
+            triggerRender();
+        });
+    }
+    setupSlider('fontScale', 'fontScaleVal', 'x');
+    setupSlider('logoScale', 'logoScaleVal', 'x');
+    setupSlider('customTextSize', 'customTextSizeVal', 'x');
+    setupSlider('bottomMargin', 'bottomMarginVal', '%');
+    setupSlider('sideMargin', 'sideMarginVal', '%');
+
+    // Event Listeners for inputs
+    [cameraInput, lensInput, settingsFinalInput, customTextInput, customTextPos, customTextBold, customTextColor, themeSelect, layoutSelect]
+        .forEach(el => el.addEventListener('input', triggerRender));
+
+    [focalInput, apertureInput, shutterInput, isoInput].forEach(el => {
+        el.addEventListener('input', () => {
+            const parts = [focalInput.value, apertureInput.value, shutterInput.value, isoInput.value].filter(Boolean);
+            settingsFinalInput.value = parts.join('  ·  ');
+            triggerRender();
+        });
+    });
+
+    showCustomText.addEventListener('change', () => {
+        document.getElementById('customTextPanel').style.display = showCustomText.checked ? 'block' : 'none';
+        triggerRender();
+    });
+
+    logoSelect.addEventListener('change', () => {
+        loadLogo(logoSelect.value);
+    });
+
+    function setCustomColor(color) {
+        customTextColor.value = color;
+        triggerRender();
+    }
+
+    // Drag & Drop
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // File Handler
+    async function handleFile(file) {
+        originalFileName = file.name;
+        showLoading(true);
+
+        try {
+            // 1. Parse EXIF & XMP
+            const exifData = await exifr.parse(file, { xmp: true, tiff: true, exif: true }) || {};
+            console.log('EXIF Data parsed:', exifData);
+
+            // Populate Form
+            cameraInput.value = exifData.Model || '';
+            
+            // LensModel (support standard EXIF and Adobe XMP)
+            const lensName = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || '';
+            lensInput.value = lensName;
+
+            // Focal Length
+            if (exifData.FocalLength) {
+                focalInput.value = `${parseFloat(exifData.FocalLength)}mm`;
+            } else {
+                focalInput.value = '';
+            }
+
+            // F-Number
+            if (exifData.FNumber) {
+                apertureInput.value = `f/${parseFloat(exifData.FNumber)}`;
+            } else {
+                apertureInput.value = '';
+            }
+
+            // Shutter Speed
+            if (exifData.ExposureTime) {
+                const exp = parseFloat(exifData.ExposureTime);
+                shutterInput.value = exp < 1 ? `1/${Math.round(1 / exp)}s` : `${exp}s`;
+            } else {
+                shutterInput.value = '';
+            }
+
+            // ISO
+            const iso = exifData.ISO || exifData.ISOSpeedRatings;
+            isoInput.value = iso ? `ISO ${iso}` : '';
+
+            // Unified Settings
+            const settingsParts = [focalInput.value, apertureInput.value, shutterInput.value, isoInput.value].filter(Boolean);
+            settingsFinalInput.value = settingsParts.join('  ·  ');
+
+            // Smart Logo Recommendation
+            autoSelectLogo(cameraInput.value, lensInput.value);
+
+            // 2. Load Image
+            const img = new Image();
+            img.onload = () => {
+                originalImage = img;
+                imgInfoBadge.textContent = `${img.width} × ${img.height}px`;
+                imgInfoBadge.style.display = 'inline-block';
+                showLoading(false);
+                placeholder.style.display = 'none';
+                previewCanvas.style.display = 'block';
+                downloadBtn.disabled = false;
+                triggerRender();
+            };
+            img.src = URL.createObjectURL(file);
+        } catch (err) {
+            console.error('File parsing error:', err);
+            showLoading(false);
+            alert('사진을 처리하는 도중 오류가 발생했습니다.');
+        }
+    }
+
+    function autoSelectLogo(cam, lens) {
+        const c = cam.toLowerCase();
+        const l = lens.toLowerCase();
+
+        if (l.includes('tamron') || l.includes('di iii')) {
+            logoSelect.value = 'logos/tamron_black.png';
+        } else if (l.includes('viltrox')) {
+            logoSelect.value = 'logos/viltrox_black.png';
+        } else if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
+            logoSelect.value = 'logos/sigma_black.png';
+        } else if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
+            logoSelect.value = 'logos/sony_alpha_orange.png';
+        } else if (c.includes('leica') || l.includes('leica') || l.includes('summicron')) {
+            logoSelect.value = 'logos/leica_red.png';
+        } else if (c.includes('hasselblad') || l.includes('hasselblad')) {
+            logoSelect.value = 'logos/hasselblad_black.png';
+        } else if (c.includes('nikon') || l.includes('nikkor')) {
+            logoSelect.value = 'logos/nikon_black.png';
+        } else if (c.includes('canon') || l.includes('canon')) {
+            logoSelect.value = 'logos/canon_red.png';
+        } else if (c.includes('fuji') || l.includes('fujinon')) {
+            logoSelect.value = 'logos/fujifilm_color.png';
+        }
+        loadLogo(logoSelect.value);
+    }
+
+    function loadLogo(url) {
+        if (!url) {
+            loadedLogoImg = null;
+            currentLogoUrl = '';
+            triggerRender();
+            return;
+        }
+        currentLogoUrl = url;
+        const img = new Image();
+        img.onload = () => {
+            loadedLogoImg = img;
+            triggerRender();
+        };
+        img.src = url;
+    }
+
+    function showLoading(show) {
+        spinner.style.display = show ? 'block' : 'none';
+    }
+
+    let renderTimeout = null;
+    function triggerRender() {
+        if (!originalImage) return;
+        if (renderTimeout) cancelAnimationFrame(renderTimeout);
+        renderTimeout = requestAnimationFrame(renderCanvas);
+    }
+
+    // Canvas Rendering Engine
+    function renderCanvas() {
+        if (!originalImage) return;
+
+        const w = originalImage.width;
+        const h = originalImage.height;
+
+        const sideMarginPct = parseFloat(sideMargin.value) / 100;
+        const bottomMarginPct = parseFloat(bottomMargin.value) / 100;
+
+        const borderSides = Math.max(20, Math.round(w * sideMarginPct));
+        const borderBottom = Math.max(80, Math.round(w * bottomMarginPct));
+
+        const newW = w + (borderSides * 2);
+        const newH = h + borderSides + borderBottom;
+
+        previewCanvas.width = newW;
+        previewCanvas.height = newH;
+
+        // Theme colors
+        let bgColor = '#ffffff';
+        let textPrimary = '#191919';
+        let textSecondary = '#6e6e6e';
+
+        const theme = themeSelect.value;
+        if (theme === 'black') {
+            bgColor = '#121212';
+            textPrimary = '#f5f5f5';
+            textSecondary = '#a5a5a5';
+        } else if (theme === 'darkgray') {
+            bgColor = '#26282b';
+            textPrimary = '#f0f0f0';
+            textSecondary = '#afafaf';
+        } else if (theme === 'cream') {
+            bgColor = '#f8f6f0';
+            textPrimary = '#1c1c1c';
+            textSecondary = '#78736e';
+        }
+
+        // 1. Draw Background & Image
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, newW, newH);
+        ctx.drawImage(originalImage, borderSides, borderSides, w, h);
+
+        // 2. Base scale calculation
+        const baseScale = w / 1200;
+        const fontMultiplier = parseFloat(fontScale.value);
+
+        const cameraText = cameraInput.value.trim();
+        const lensText = lensInput.value.trim();
+        const settingsText = settingsFinalInput.value.trim();
+
+        const mainTitle = [cameraText, lensText].filter(Boolean).join('   |   ');
+        const layout = layoutSelect.value;
+        const usableWidth = newW - (borderSides * 2);
+
+        // Logo sizing
+        let logoW = 0;
+        let logoH = 0;
+        const lScale = parseFloat(logoScale.value);
+        if (loadedLogoImg) {
+            const maxLogoH = Math.min(Math.round(borderBottom * 0.75), Math.max(10, Math.round(borderBottom * 0.45 * lScale)));
+            const aspect = loadedLogoImg.width / loadedLogoImg.height;
+            logoH = maxLogoH;
+            logoW = Math.round(logoH * aspect);
+        }
+
+        // Custom Text setup
+        const hasCustom = showCustomText.checked && customTextInput.value.trim();
+        const cText = hasCustom ? customTextInput.value.trim() : '';
+        const cPos = customTextPos.value;
+        const cScale = parseFloat(customTextSize.value);
+        const cBold = customTextBold.checked;
+        const cColor = customTextColor.value;
+
+        ctx.textBaseline = 'middle';
+
+        const titleFontSize = Math.round(24 * baseScale * fontMultiplier);
+        const subFontSize = Math.round(18 * baseScale * fontMultiplier);
+
+        // Calculate custom text dimensions
+        let cTextW = 0;
+        let cTextH = 0;
+        let cFontSize = 0;
+        if (hasCustom) {
+            cFontSize = Math.round(24 * baseScale * fontMultiplier * cScale);
+            ctx.font = `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`;
+            cTextW = ctx.measureText(cText).width;
+            cTextH = cFontSize;
+        }
+
+        let customRightSpace = (hasCustom && cPos === 'bottom_right') ? (cTextW + Math.round(35 * baseScale)) : 0;
+        let logoRightSpace = logoW ? (logoW + Math.round(30 * baseScale)) : 0;
+
+        // Draw Layouts
+        if (layout === 'modern') {
+            // 좌우 분할
+            const rightW = Math.max(Math.round(usableWidth * 0.35), Math.round(320 * baseScale));
+            const leftW = usableWidth - rightW - logoRightSpace - customRightSpace - Math.round(20 * baseScale);
+
+            const centerY = h + borderSides + (borderBottom / 2);
+
+            // Left: Camera & Lens
+            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+            ctx.fillStyle = textPrimary;
+            ctx.fillText(mainTitle, borderSides, centerY, Math.max(100, leftW));
+
+            // Right: Settings
+            if (settingsText) {
+                ctx.font = `${titleFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                const settW = ctx.measureText(settingsText).width;
+                const settX = newW - borderSides - logoRightSpace - customRightSpace - settW;
+                ctx.fillText(settingsText, settX, centerY);
+            }
+
+            // Logo
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else if (layout === 'minimal') {
+            // 중앙 정렬
+            const centerY = h + borderSides + (borderBottom / 2);
+
+            ctx.textAlign = 'center';
+            if (settingsText) {
+                ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                ctx.fillText(mainTitle, newW / 2, centerY - Math.round(14 * baseScale));
+
+                ctx.font = `${subFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textSecondary;
+                ctx.fillText(settingsText, newW / 2, centerY + Math.round(14 * baseScale));
+            } else {
+                ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                ctx.fillText(mainTitle, newW / 2, centerY);
+            }
+            ctx.textAlign = 'left';
+
+            // Logo (Right)
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else {
+            // 2단/3단 표준
+            const centerY = h + borderSides + (borderBottom / 2);
+
+            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+            ctx.fillStyle = textPrimary;
+            ctx.fillText(mainTitle, borderSides, centerY - Math.round(14 * baseScale), usableWidth - logoRightSpace - customRightSpace);
+
+            if (settingsText) {
+                ctx.font = `${subFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textSecondary;
+                ctx.fillText(settingsText, borderSides, centerY + Math.round(16 * baseScale), usableWidth - logoRightSpace - customRightSpace);
+            }
+
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        }
+
+        // Draw Custom Text / Watermark
+        if (hasCustom && cText) {
+            ctx.font = `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`;
+            ctx.fillStyle = cColor;
+
+            const padInside = Math.round(w * 0.025);
+            let cx = 0;
+            let cy = 0;
+
+            if (cPos === 'bottom_right') {
+                cx = newW - borderSides - logoRightSpace - cTextW;
+                cy = h + borderSides + (borderBottom / 2);
+            } else if (cPos === 'bottom_center') {
+                cx = (newW - cTextW) / 2;
+                cy = h + borderSides + (borderBottom / 2);
+            } else if (cPos === 'bottom_left') {
+                cx = borderSides;
+                cy = h + borderSides + borderBottom - Math.round(18 * baseScale);
+            } else if (cPos === 'inside_br') {
+                cx = borderSides + w - padInside - cTextW;
+                cy = borderSides + h - padInside - Math.round(cFontSize / 2);
+            } else if (cPos === 'inside_bl') {
+                cx = borderSides + padInside;
+                cy = borderSides + h - padInside - Math.round(cFontSize / 2);
+            } else if (cPos === 'inside_tr') {
+                cx = borderSides + w - padInside - cTextW;
+                cy = borderSides + padInside + Math.round(cFontSize / 2);
+            } else if (cPos === 'inside_tl') {
+                cx = borderSides + padInside;
+                cy = borderSides + padInside + Math.round(cFontSize / 2);
+            }
+
+            // Watermark shadow if inside photo
+            if (cPos.startsWith('inside_')) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.65)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                ctx.fillText(cText, cx, cy);
+                ctx.restore();
+            } else {
+                ctx.fillText(cText, cx, cy);
+            }
+        }
+    }
+
+    // Download Button Action
+    downloadBtn.addEventListener('click', () => {
+        if (!originalImage) return;
+
+        downloadBtn.textContent = '⏳ 이미지 렌더링 중...';
+        downloadBtn.disabled = true;
+
+        setTimeout(() => {
+            previewCanvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = `framed_${originalFileName}`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                downloadBtn.textContent = '📥 초고화질 이미지 다운로드 (Original Quality)';
+                downloadBtn.disabled = false;
+            }, 'image/jpeg', 0.98);
+        }, 50);
+    });
+</script>
+
+</body>
+</html>
