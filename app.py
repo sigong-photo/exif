@@ -5,16 +5,27 @@ import os
 import re
 
 def get_font(size, bold=False):
+    base_dir = os.path.dirname(__file__)
+    font_file = "fonts/Pretendard-Bold.ttf" if bold else "fonts/Pretendard-Regular.ttf"
+    bundled_font = os.path.join(base_dir, font_file)
+    if os.path.exists(bundled_font):
+        try:
+            return ImageFont.truetype(bundled_font, size)
+        except Exception:
+            pass
+
     if bold:
         candidates = [
             "/System/Library/Fonts/AppleSDGothicNeo.ttc",
             "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/System/Library/Fonts/Helvetica.ttc",
         ]
     else:
         candidates = [
             "/System/Library/Fonts/AppleSDGothicNeo.ttc",
             "/System/Library/Fonts/Supplemental/Arial.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/System/Library/Fonts/Helvetica.ttc",
         ]
     for p in candidates:
