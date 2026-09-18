@@ -252,72 +252,151 @@ def add_exif_frame(image, options):
         if c_pos == "하단 프레임 - 우측 (브랜드 로고 자리)":
             custom_right_w = cw + int(35 * base_scale)
 
-    if layout == "좌우 분할 (Modern)":
-        # 우측 설정 영역 폭 및 좌측 영역 폭 계산
-        right_w = max(int(usable_width * 0.35), int(320 * base_scale))
-        left_w = usable_width - right_w - logo_w - custom_right_w - int(20 * base_scale)
-        
-        t_font = fit_font(main_title, left_w, init_title_size, bold=True)
-        s_font = fit_font(extra_text if extra_text else " ", left_w, init_sub_size, bold=False)
-        sett_font = fit_font(settings_text, right_w, init_title_size, bold=False)
-        
-        t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
-        s_bbox = draw.textbbox((0, 0), extra_text if extra_text else "A", font=s_font)
-        
-        has_left_custom = has_custom and (c_pos == "하단 프레임 - 좌측 (메타데이터 하단)")
-        
-        line_gap = int(12 * base_scale)
-        content_h = (t_bbox[3] - t_bbox[1])
-        if extra_text:
-            content_h += line_gap + (s_bbox[3] - s_bbox[1])
-        if has_left_custom:
-            content_h += line_gap + ch
-            
-        start_y = h + border_sides + max(10, int((border_bottom - content_h) / 2))
-        
-        curr_y = start_y
+    # 레이아웃 분기 렌더링 (8종 테마 지원)
+    line_gap_std = int(10 * base_scale)
+    
+    if layout in ["상하 2줄 분할 (Two Line - 추천)", "2단/3단 표준 정렬"]:
+        avail_w = max(100, usable_width - logo_w - custom_right_w)
+        lines = []
         if main_title:
-            draw.text((border_sides, curr_y), main_title, fill=text_primary, font=t_font)
-            curr_y += (t_bbox[3] - t_bbox[1]) + line_gap
-        if extra_text:
-            draw.text((border_sides, curr_y), extra_text, fill=text_secondary, font=s_font)
-            curr_y += (s_bbox[3] - s_bbox[1]) + line_gap
-        if has_left_custom:
-            draw.text((border_sides, curr_y), c_text, fill=c_rgb, font=c_font)
-            
-        # 우측 설정값 출력
+            t_font = fit_font(main_title, avail_w, init_title_size, bold=True)
+            t_bbox = draw.textbbox((0, 0), main_title, font=t_font)
+            lines.append((main_title, t_font, text_primary, t_bbox[3] - t_bbox[1]))
         if settings_text:
-            sett_bbox = draw.textbbox((0, 0), settings_text, font=sett_font)
-            sett_w = sett_bbox[2] - sett_bbox[0]
-            sett_x = new_width - border_sides - logo_w - custom_right_w - sett_w
-            sett_y = h + border_sides + max(10, int((border_bottom - (sett_bbox[3] - sett_bbox[1])) / 2))
-            draw.text((sett_x, sett_y), settings_text, fill=text_primary, font=sett_font)
+            s_font = fit_font(settings_text, avail_w, init_sub_size, bold=False)
+            s_bbox = draw.textbbox((0, 0), settings_text, font=s_font)
+            lines.append((settings_text, s_font, text_secondary, s_bbox[3] - s_bbox[1]))
+        if extra_text:
+            e_font = fit_font(extra_text, avail_w, max(12, int(init_sub_size * 0.9)), bold=False)
+            e_bbox = draw.textbbox((0, 0), extra_text, font=e_font)
+            lines.append((extra_text, e_font, text_secondary, e_bbox[3] - e_bbox[1]))
+        if has_custom and (c_pos == "하단 프레임 - 좌측 (메타데이터 하단)"):
+            lines.append((c_text, c_font, c_rgb, ch))
             
-        # 로고 출력 (최우측)
+        total_h = sum([l[3] for l in lines]) + line_gap_std * max(0, len(lines) - 1) if lines else 0
+        curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+        
+        for text_val, font_val, color_val, text_h in lines:
+            draw.text((border_sides, curr_y), text_val, fill=color_val, font=font_val)
+            curr_y += text_h + line_gap_std
+            
         if logo:
             logo_x = new_width - border_sides - logo.width
             logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
             framed_img.paste(logo, (logo_x, logo_y), mask=logo)
-                
-    elif layout == "중앙 정렬 (Minimal)":
-        t_font = fit_font(main_title, usable_width - custom_right_w - logo_w, init_title_size, bold=True)
-        sub_line = "  ·  ".join([p for p in [settings_text, extra_text] if p])
-        s_font = fit_font(sub_line, usable_width - custom_right_w - logo_w, init_sub_size, bold=False)
+
+    elif layout in ["좌우 분할 (Modern Clean)", "좌우 분할 (Modern)"]:
+        sett_font = get_font(init_title_size, bold=False)
+        sett_w = 0
+        sett_h = 0
+        if settings_text:
+            s_bbox = draw.textbbox((0, 0), settings_text, font=sett_font)
+            sett_w = s_bbox[2] - s_bbox[0]
+            sett_h = s_bbox[3] - s_bbox[1]
+            
+        right_reserved = sett_w + int(35 * base_scale) if sett_w else 0
+        avail_left_w = max(120, usable_width - right_reserved - logo_w - custom_right_w)
         
+        # 텍스트 충돌 방지: 좌측 텍스트가 공간 초과 시 스마트 2단 분할
+        t_font = get_font(init_title_size, bold=True)
+        t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
+        main_w = t_bbox[2] - t_bbox[0]
+        
+        if main_w > avail_left_w and camera_text and lens_text:
+            gap = int(6 * base_scale)
+            sub_size = max(12, int(init_title_size * 0.85))
+            c_font_split = fit_font(camera_text, avail_left_w, init_title_size, bold=True)
+            l_font_split = fit_font(lens_text, avail_left_w, sub_size, bold=False)
+            
+            c_box = draw.textbbox((0, 0), camera_text, font=c_font_split)
+            l_box = draw.textbbox((0, 0), lens_text, font=l_font_split)
+            c_h = c_box[3] - c_box[1]
+            l_h = l_box[3] - l_box[1]
+            
+            total_lh = c_h + gap + l_h
+            start_y = h + border_sides + max(10, int((border_bottom - total_lh) / 2))
+            
+            draw.text((border_sides, start_y), camera_text, fill=text_primary, font=c_font_split)
+            draw.text((border_sides, start_y + c_h + gap), lens_text, fill=text_secondary, font=l_font_split)
+        else:
+            t_font_fit = fit_font(main_title, avail_left_w, init_title_size, bold=True)
+            t_box = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font_fit)
+            t_h = t_box[3] - t_box[1]
+            start_y = h + border_sides + max(10, int((border_bottom - t_h) / 2))
+            if main_title:
+                draw.text((border_sides, start_y), main_title, fill=text_primary, font=t_font_fit)
+                
+        if settings_text:
+            sett_font_fit = fit_font(settings_text, max(100, usable_width - avail_left_w - logo_w - custom_right_w), init_title_size, bold=False)
+            sb = draw.textbbox((0, 0), settings_text, font=sett_font_fit)
+            sw = sb[2] - sb[0]
+            sh = sb[3] - sb[1]
+            sett_x = new_width - border_sides - logo_w - custom_right_w - sw
+            sett_y = h + border_sides + max(10, int((border_bottom - sh) / 2))
+            draw.text((sett_x, sett_y), settings_text, fill=text_primary, font=sett_font_fit)
+            
+        if logo:
+            logo_x = new_width - border_sides - logo.width
+            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
+            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+
+    elif layout == "Shot on 스타일 (Shot on Signature)":
+        shot_on_title = f"Shot on {camera_text}" if camera_text else "Shot on Camera"
+        sub_line = "   ·   ".join([p for p in [lens_text, settings_text] if p])
+        avail_w = max(100, usable_width - logo_w - custom_right_w)
+        
+        t_font = fit_font(shot_on_title, avail_w, init_title_size, bold=True)
+        s_font = fit_font(sub_line if sub_line else "A", avail_w, init_sub_size, bold=False)
+        t_b = draw.textbbox((0, 0), shot_on_title, font=t_font)
+        s_b = draw.textbbox((0, 0), sub_line if sub_line else "A", font=s_font)
+        th = t_b[3] - t_b[1]
+        sh = s_b[3] - s_b[1] if sub_line else 0
+        
+        line_gap = int(8 * base_scale)
+        total_h = th + (line_gap + sh if sub_line else 0)
+        curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+        
+        draw.text((border_sides, curr_y), shot_on_title, fill=text_primary, font=t_font)
+        if sub_line:
+            draw.text((border_sides, curr_y + th + line_gap), sub_line, fill=text_secondary, font=s_font)
+            
+        if logo:
+            logo_x = new_width - border_sides - logo.width
+            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
+            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+
+    elif layout == "심플 1줄 (One Line)":
+        full_line = "   ·   ".join([p for p in [camera_text, lens_text, settings_text] if p])
+        avail_w = max(100, usable_width - logo_w - custom_right_w)
+        t_font = fit_font(full_line, avail_w, init_title_size, bold=True)
+        tb = draw.textbbox((0, 0), full_line if full_line else "A", font=t_font)
+        th = tb[3] - tb[1]
+        curr_y = h + border_sides + max(10, int((border_bottom - th) / 2))
+        if full_line:
+            draw.text((border_sides, curr_y), full_line, fill=text_primary, font=t_font)
+            
+        if logo:
+            logo_x = new_width - border_sides - logo.width
+            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
+            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+
+    elif layout == "중앙 정렬 (Minimal)":
+        avail_w = usable_width - custom_right_w - logo_w
+        t_font = fit_font(main_title, avail_w, init_title_size, bold=True)
+        s_font = fit_font(settings_text, avail_w, init_sub_size, bold=False)
         has_center_custom = has_custom and (c_pos == "하단 프레임 - 중앙")
         
-        t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
-        s_bbox = draw.textbbox((0, 0), sub_line if sub_line else "A", font=s_font)
-        
-        line_gap = int(14 * base_scale)
         lines = []
         if main_title:
-            lines.append((main_title, t_font, text_primary, t_bbox[2] - t_bbox[0], t_bbox[3] - t_bbox[1]))
-        if sub_line:
-            lines.append((sub_line, s_font, text_secondary, s_bbox[2] - s_bbox[0], s_bbox[3] - s_bbox[1]))
+            tb = draw.textbbox((0, 0), main_title, font=t_font)
+            lines.append((main_title, t_font, text_primary, tb[2] - tb[0], tb[3] - tb[1]))
+        if settings_text:
+            sb = draw.textbbox((0, 0), settings_text, font=s_font)
+            lines.append((settings_text, s_font, text_secondary, sb[2] - sb[0], sb[3] - sb[1]))
         if has_center_custom:
             lines.append((c_text, c_font, c_rgb, cw, ch))
             
+        line_gap = int(14 * base_scale)
         total_h = sum([l[4] for l in lines]) + line_gap * max(0, len(lines) - 1) if lines else 0
         curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
         
@@ -329,37 +408,68 @@ def add_exif_frame(image, options):
             logo_x = new_width - border_sides - logo.width
             logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
             framed_img.paste(logo, (logo_x, logo_y), mask=logo)
-                
-    else: # 2단/3단 표준 정렬
-        t_font = fit_font(main_title, usable_width - logo_w - custom_right_w, init_title_size, bold=True)
-        s_font = fit_font(settings_text, usable_width - logo_w - custom_right_w, init_sub_size, bold=False)
-        e_font = fit_font(extra_text if extra_text else " ", usable_width - logo_w - custom_right_w, max(12, int(init_sub_size * 0.9)), bold=False)
+
+    elif layout == "레트로 필름 (Film Date)":
+        cam_str = camera_text.upper() if camera_text else "FILM 35MM"
+        info_str = "   /   ".join([p for p in [lens_text, settings_text] if p])
         
-        has_left_custom = has_custom and (c_pos == "하단 프레임 - 좌측 (메타데이터 하단)")
-        
-        t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
-        s_bbox = draw.textbbox((0, 0), settings_text if settings_text else "A", font=s_font)
-        e_bbox = draw.textbbox((0, 0), extra_text if extra_text else "A", font=e_font)
-        
-        line_gap = int(12 * base_scale)
-        lines = []
-        if main_title:
-            lines.append((main_title, t_font, text_primary, t_bbox[3] - t_bbox[1]))
-        if settings_text:
-            lines.append((settings_text, s_font, text_secondary, s_bbox[3] - s_bbox[1]))
-        if extra_text:
-            lines.append((extra_text, e_font, text_secondary, e_bbox[3] - e_bbox[1]))
-        if has_left_custom:
-            lines.append((c_text, c_font, c_rgb, ch))
+        # 레트로 날짜 스탬프
+        date_stamp = extra_text.split("  ·  ")[0] if extra_text else ""
+        if not date_stamp:
+            from datetime import datetime
+            date_stamp = datetime.now().strftime("'%y  %m  %d")
+        else:
+            date_stamp = date_stamp.split(" ")[0].replace(".", "  ")
             
-        total_h = sum([l[3] for l in lines]) + line_gap * max(0, len(lines) - 1) if lines else 0
+        stamp_font = get_font(int(init_title_size * 1.15), bold=True)
+        st_box = draw.textbbox((0, 0), date_stamp, font=stamp_font)
+        st_w = st_box[2] - st_box[0]
+        st_h = st_box[3] - st_box[1]
         
-        cur_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+        avail_left = max(100, usable_width - st_w - logo_w - int(35 * base_scale))
+        t_font = fit_font(cam_str, avail_left, init_title_size, bold=True)
+        s_font = fit_font(info_str if info_str else "A", avail_left, init_sub_size, bold=False)
         
-        for text_val, font_val, color_val, text_h in lines:
-            draw.text((border_sides, cur_y), text_val, fill=color_val, font=font_val)
-            cur_y += text_h + line_gap
+        tb = draw.textbbox((0, 0), cam_str, font=t_font)
+        sb = draw.textbbox((0, 0), info_str if info_str else "A", font=s_font)
+        th = tb[3] - tb[1]
+        sh = sb[3] - sb[1] if info_str else 0
+        
+        line_gap = int(8 * base_scale)
+        total_h = th + (line_gap + sh if info_str else 0)
+        curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+        
+        draw.text((border_sides, curr_y), cam_str, fill=text_primary, font=t_font)
+        if info_str:
+            draw.text((border_sides, curr_y + th + line_gap), info_str, fill=text_secondary, font=s_font)
             
+        # 오렌지 날짜 스탬프 출력
+        stamp_x = new_width - border_sides - logo_w - st_w - int(10 * base_scale)
+        stamp_y = h + border_sides + max(10, int((border_bottom - st_h) / 2))
+        draw.text((stamp_x, stamp_y), date_stamp, fill=(255, 143, 0), font=stamp_font)
+        
+        if logo:
+            logo_x = new_width - border_sides - logo.width
+            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
+            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+
+    elif layout == "시네마스코프 (Cinema 2.39:1)":
+        cinema_text = "   ·   ".join([p for p in [camera_text, lens_text, settings_text] if p])
+        t_font = fit_font(cinema_text, usable_width - logo_w - int(40 * base_scale), init_sub_size, bold=False)
+        tb = draw.textbbox((0, 0), cinema_text if cinema_text else "A", font=t_font)
+        tw = tb[2] - tb[0]
+        th = tb[3] - tb[1]
+        curr_y = h + border_sides + max(10, int((border_bottom - th) / 2))
+        
+        if cinema_text:
+            draw.text((int((new_width - tw) / 2), curr_y), cinema_text, fill=text_primary, font=t_font)
+            
+        if logo:
+            logo_x = new_width - border_sides - logo.width
+            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
+            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+
+    elif layout == "여백 프레임만 (Just Frame)":
         if logo:
             logo_x = new_width - border_sides - logo.width
             logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
@@ -432,13 +542,13 @@ if uploaded_file:
     file_key = f"{uploaded_file.name}_{uploaded_file.size}"
     
     # 1. 원본 메타데이터 기본값 파싱
-    default_camera = clean_str(exif.get("Model") or "Unknown Camera")
+    default_camera = clean_str(exif.get("Model") or exif.get("CameraModelName") or exif.get("Make") or "")
     lens_model_val = exif.get("LensModel") or exif.get("LensSpecification") or ""
     lens_make_val = exif.get("LensMake") or ""
     if lens_make_val and lens_model_val and str(lens_make_val).lower() not in str(lens_model_val).lower():
         default_lens = clean_str(f"{lens_make_val} {lens_model_val}")
     else:
-        default_lens = clean_str(lens_model_val or lens_make_val or "Unknown Lens")
+        default_lens = clean_str(lens_model_val or lens_make_val or "")
     
     # 초점거리
     focal_raw = exif.get("FocalLength", "")
@@ -496,21 +606,43 @@ if uploaded_file:
         st.subheader("⚙️ 메타 데이터 항목 편집 및 추가")
         
         with st.expander("📷 카메라 및 렌즈 설정", expanded=True):
-            camera_val = st.text_input("카메라 모델", value=default_camera, key=f"cam_{file_key}")
-            lens_val = st.text_input("렌즈 모델", value=default_lens, key=f"lens_{file_key}")
+            chk_col1, chk_col2 = st.columns(2)
+            with chk_col1:
+                show_cam = st.checkbox("📷 카메라 기종 표시", value=bool(default_camera), key=f"chk_cam_{file_key}")
+                camera_val = st.text_input("카메라 모델", value=default_camera, key=f"cam_{file_key}", disabled=not show_cam)
+            with chk_col2:
+                show_lens = st.checkbox("🔍 렌즈 모델 표시", value=bool(default_lens), key=f"chk_lens_{file_key}")
+                lens_val = st.text_input("렌즈 모델", value=default_lens, key=f"lens_{file_key}", disabled=not show_lens)
             
         with st.expander("⏱️ 촬영 설정 개별 편집", expanded=True):
+            st.write("**표시할 세부 설정 항목 선택:**")
+            t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+            with t_col1:
+                show_focal = st.checkbox("초점거리", value=bool(default_focal), key=f"chk_foc_{file_key}")
+            with t_col2:
+                show_aperture = st.checkbox("조리개", value=bool(default_aperture), key=f"chk_ap_{file_key}")
+            with t_col3:
+                show_shutter = st.checkbox("셔터스피드", value=bool(default_shutter), key=f"chk_exp_{file_key}")
+            with t_col4:
+                show_iso = st.checkbox("ISO", value=bool(default_iso), key=f"chk_iso_{file_key}")
+
             sc1, sc2 = st.columns(2)
             with sc1:
-                focal_val = st.text_input("초점거리", value=default_focal, key=f"foc_{file_key}")
-                shutter_val = st.text_input("셔터 스피드", value=default_shutter, key=f"exp_{file_key}")
+                focal_val = st.text_input("초점거리", value=default_focal, key=f"foc_{file_key}", disabled=not show_focal)
+                shutter_val = st.text_input("셔터 스피드", value=default_shutter, key=f"exp_{file_key}", disabled=not show_shutter)
             with sc2:
-                aperture_val = st.text_input("조리개 값", value=default_aperture, key=f"ap_{file_key}")
-                iso_val_input = st.text_input("ISO 감도", value=default_iso, key=f"iso_{file_key}")
+                aperture_val = st.text_input("조리개 값", value=default_aperture, key=f"ap_{file_key}", disabled=not show_aperture)
+                iso_val_input = st.text_input("ISO 감도", value=default_iso, key=f"iso_{file_key}", disabled=not show_iso)
                 
-            auto_settings = "  ·  ".join([p for p in [focal_val, aperture_val, shutter_val, iso_val_input] if p])
+            active_settings = []
+            if show_focal and clean_str(focal_val): active_settings.append(clean_str(focal_val))
+            if show_aperture and clean_str(aperture_val): active_settings.append(clean_str(aperture_val))
+            if show_shutter and clean_str(shutter_val): active_settings.append(clean_str(shutter_val))
+            if show_iso and clean_str(iso_val_input): active_settings.append(clean_str(iso_val_input))
+            auto_settings = "  ·  ".join(active_settings)
+            
             settings_final = st.text_input("촬영 설정 최종 텍스트", value=auto_settings, key=f"sett_final_{file_key}",
-                                           help="위 4개 항목을 바탕으로 자동 구성되며, 원하는 형태로 직접 수정할 수 있습니다.")
+                                           help="선택된 항목들로 자동 구성되며, 원하는 형태로 직접 수정할 수 있습니다.")
 
         with st.expander("✨ 브랜드 로고 프리셋 (카메라 및 렌즈 제조사)", expanded=True):
             logo_target = st.radio(
@@ -738,7 +870,21 @@ if uploaded_file:
 
         with st.expander("🎨 프레임 디자인 및 전체 여백 설정", expanded=True):
             theme_choice = st.selectbox("프레임 테마", ["화이트", "블랙", "다크 그레이", "크림"], index=0, key=f"theme_{file_key}")
-            layout_choice = st.selectbox("레이아웃 스타일", ["좌우 분할 (Modern)", "2단/3단 표준 정렬", "중앙 정렬 (Minimal)"], index=0, key=f"layout_{file_key}")
+            layout_choice = st.selectbox(
+                "레이아웃 스타일",
+                [
+                    "상하 2줄 분할 (Two Line - 추천)",
+                    "좌우 분할 (Modern Clean)",
+                    "Shot on 스타일 (Shot on Signature)",
+                    "심플 1줄 (One Line)",
+                    "중앙 정렬 (Minimal)",
+                    "레트로 필름 (Film Date)",
+                    "시네마스코프 (Cinema 2.39:1)",
+                    "여백 프레임만 (Just Frame)"
+                ],
+                index=0,
+                key=f"layout_{file_key}"
+            )
             
             font_scale = st.slider("기본 글자 크기 배율", min_value=0.6, max_value=2.5, value=1.3, step=0.1, key=f"font_scale_{file_key}")
             bottom_margin = st.slider("하단 여백 비율 (%)", min_value=5, max_value=20, value=9, step=1, key=f"bottom_m_{file_key}")
@@ -762,8 +908,8 @@ if uploaded_file:
         }
             
         options = {
-            "camera": clean_str(camera_val),
-            "lens": clean_str(lens_val),
+            "camera": clean_str(camera_val) if show_cam else "",
+            "lens": clean_str(lens_val) if show_lens else "",
             "settings": clean_str(settings_final),
             "extra_items": extra_items,
             "custom_text": custom_text_dict,

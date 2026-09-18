@@ -285,6 +285,46 @@
             border: 1px solid rgba(88, 166, 255, 0.35);
         }
 
+        /* Item Toggle Chips */
+        .toggle-chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+        }
+        .toggle-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+        .toggle-chip:hover {
+            border-color: rgba(88, 166, 255, 0.4);
+            color: var(--text-main);
+        }
+        .toggle-chip input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            cursor: pointer;
+        }
+        .toggle-chip:has(input:checked) {
+            background: rgba(88, 166, 255, 0.12);
+            border-color: rgba(88, 166, 255, 0.45);
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
         /* Preview Side (Right) */
         .preview-sticky {
             position: sticky;
@@ -573,6 +613,10 @@
             <!-- Parameters Card -->
             <div class="card" id="settingsCard">
                 <div class="section-title">⚙️ 카메라 및 렌즈 정보</div>
+                <div class="toggle-chips-wrap">
+                    <label class="toggle-chip"><input type="checkbox" id="showCamera" checked><span>📷 카메라 기종</span></label>
+                    <label class="toggle-chip"><input type="checkbox" id="showLens" checked><span>🔍 렌즈 모델</span></label>
+                </div>
                 <div class="form-group">
                     <label>카메라 모델</label>
                     <input type="text" id="cameraInput" placeholder="예: ILCE-1M2">
@@ -583,6 +627,13 @@
                 </div>
 
                 <div class="section-title" style="margin-top: 24px;">⏱️ 촬영 세부 설정</div>
+                <div class="toggle-chips-wrap">
+                    <label class="toggle-chip"><input type="checkbox" id="showFocal" checked><span>초점거리</span></label>
+                    <label class="toggle-chip"><input type="checkbox" id="showAperture" checked><span>조리개</span></label>
+                    <label class="toggle-chip"><input type="checkbox" id="showShutter" checked><span>셔터스피드</span></label>
+                    <label class="toggle-chip"><input type="checkbox" id="showIso" checked><span>ISO</span></label>
+                    <label class="toggle-chip"><input type="checkbox" id="showDateTime"><span>촬영 일시</span></label>
+                </div>
                 <div class="form-row">
                     <div>
                         <label>초점거리</label>
@@ -602,6 +653,10 @@
                         <label>ISO 감도</label>
                         <input type="text" id="isoInput" placeholder="ISO 100">
                     </div>
+                </div>
+                <div class="form-group" id="dateTimeWrap" style="display: none;">
+                    <label>촬영 일시</label>
+                    <input type="text" id="dateTimeInput" placeholder="예: 2026.09.18 14:32">
                 </div>
                 <div class="form-group">
                     <label>촬영 설정 최종 요약</label>
@@ -753,11 +808,16 @@
                         </select>
                     </div>
                     <div>
-                        <label>레이아웃 스타일</label>
+                        <label>메타데이터 레이아웃 테마</label>
                         <select id="layoutSelect">
-                            <option value="modern">좌우 분할 (Modern)</option>
-                            <option value="standard">2단/3단 표준 (Standard)</option>
-                            <option value="minimal">중앙 정렬 (Minimal)</option>
+                            <option value="two_line" selected>두 줄 표준 (Two Line - 추천)</option>
+                            <option value="modern">좌우 분할 (Modern Clean)</option>
+                            <option value="shot_on">Shot on 시그니처 (Signature)</option>
+                            <option value="one_line">한 줄 미니멀 (One Line)</option>
+                            <option value="minimal">감성 중앙 정렬 (Minimal)</option>
+                            <option value="film">레트로 필름 (Film & Vintage)</option>
+                            <option value="cinema">시네마스코프 (Cinema Scope 2.39:1)</option>
+                            <option value="just_frame">프레임만 (Just Frame)</option>
                         </select>
                     </div>
                 </div>
@@ -836,6 +896,16 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.5.0</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>🎨 8종 감성 메타데이터 테마 시스템 & 세부 항목별 토글 & 충돌 방지</h4>
+                <ul>
+                    <li>exif-frame 스타일의 8종 메타데이터 테마 탑재 (Two Line, Modern, Shot on, One Line, Minimal, Film, Cinema, Just Frame)</li>
+                    <li>카메라, 렌즈, 초점거리, 조리개, 셔터스피드, ISO 감도, 촬영 일시 개별 가시성(Show/Hide) 토글 칩 제공</li>
+                    <li>Modern Clean 레이아웃에서 긴 렌즈명과 촬영 설정 간 겹침 방지 스마트 2줄 자동 분할 엔진 적용</li>
+                    <li>메타데이터가 없는 사진 업로드 시 로고가 자동 초기화(선택 안 함)되도록 버그 수정</li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.4.4</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>🔍 라오와(LAOWA / Venus Optics) 렌즈 정보 및 로고 추가</h4>
@@ -932,14 +1002,25 @@
     const spinner = document.getElementById('loadingSpinner');
     const imgInfoBadge = document.getElementById('imgInfoBadge');
 
-    // Inputs
+    // Inputs & Toggles
+    const showCamera = document.getElementById('showCamera');
+    const showLens = document.getElementById('showLens');
     const cameraInput = document.getElementById('cameraInput');
     const lensInput = document.getElementById('lensInput');
+
+    const showFocal = document.getElementById('showFocal');
+    const showAperture = document.getElementById('showAperture');
+    const showShutter = document.getElementById('showShutter');
+    const showIso = document.getElementById('showIso');
+    const showDateTime = document.getElementById('showDateTime');
     const focalInput = document.getElementById('focalInput');
     const apertureInput = document.getElementById('apertureInput');
     const shutterInput = document.getElementById('shutterInput');
     const isoInput = document.getElementById('isoInput');
+    const dateTimeInput = document.getElementById('dateTimeInput');
+    const dateTimeWrap = document.getElementById('dateTimeWrap');
     const settingsFinalInput = document.getElementById('settingsFinalInput');
+
     const logoSelect = document.getElementById('logoSelect');
     const logoScale = document.getElementById('logoScale');
     const showCustomText = document.getElementById('showCustomText');
@@ -953,6 +1034,17 @@
     const fontScale = document.getElementById('fontScale');
     const bottomMargin = document.getElementById('bottomMargin');
     const sideMargin = document.getElementById('sideMargin');
+
+    function updateSettingsSummary() {
+        const parts = [];
+        if (showFocal.checked && focalInput.value.trim()) parts.push(focalInput.value.trim());
+        if (showAperture.checked && apertureInput.value.trim()) parts.push(apertureInput.value.trim());
+        if (showShutter.checked && shutterInput.value.trim()) parts.push(shutterInput.value.trim());
+        if (showIso.checked && isoInput.value.trim()) parts.push(isoInput.value.trim());
+        if (showDateTime.checked && dateTimeInput.value.trim()) parts.push(dateTimeInput.value.trim());
+        settingsFinalInput.value = parts.join('  ·  ');
+        triggerRender();
+    }
 
     // Slider Listeners
     function setupSlider(sliderId, valId, suffix = '') {
@@ -973,12 +1065,15 @@
     [cameraInput, lensInput, settingsFinalInput, customTextInput, customTextPos, customTextBold, customTextColor, themeSelect, layoutSelect]
         .forEach(el => el.addEventListener('input', triggerRender));
 
-    [focalInput, apertureInput, shutterInput, isoInput].forEach(el => {
-        el.addEventListener('input', () => {
-            const parts = [focalInput.value, apertureInput.value, shutterInput.value, isoInput.value].filter(Boolean);
-            settingsFinalInput.value = parts.join('  ·  ');
-            triggerRender();
-        });
+    [showCamera, showLens].forEach(el => el.addEventListener('change', triggerRender));
+    [showFocal, showAperture, showShutter, showIso].forEach(el => el.addEventListener('change', updateSettingsSummary));
+    showDateTime.addEventListener('change', () => {
+        dateTimeWrap.style.display = showDateTime.checked ? 'block' : 'none';
+        updateSettingsSummary();
+    });
+
+    [focalInput, apertureInput, shutterInput, isoInput, dateTimeInput].forEach(el => {
+        el.addEventListener('input', updateSettingsSummary);
     });
 
     showCustomText.addEventListener('change', () => {
@@ -1040,6 +1135,11 @@
         originalFileName = file.name;
         showLoading(true);
 
+        // Reset logo state initially so images without metadata don't keep previous logos
+        logoSelect.value = '';
+        loadedLogoImg = null;
+        currentLogoUrl = '';
+
         try {
             // 1. Parse EXIF & XMP
             const exifData = await exifr.parse(file, { xmp: true, tiff: true, exif: true }) || {};
@@ -1085,9 +1185,30 @@
             const iso = exifData.ISO || exifData.ISOSpeedRatings;
             isoInput.value = iso ? `ISO ${iso}` : '';
 
+            // DateTime
+            const dateRaw = exifData.DateTimeOriginal || exifData.CreateDate || exifData.ModifyDate || '';
+            if (dateRaw) {
+                try {
+                    const d = new Date(dateRaw);
+                    if (!isNaN(d.getTime())) {
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        const hh = String(d.getHours()).padStart(2, '0');
+                        const min = String(d.getMinutes()).padStart(2, '0');
+                        dateTimeInput.value = `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+                    } else {
+                        dateTimeInput.value = cleanStr(String(dateRaw).replace(/:/g, '.').slice(0, 16));
+                    }
+                } catch (_) {
+                    dateTimeInput.value = cleanStr(String(dateRaw));
+                }
+            } else {
+                dateTimeInput.value = '';
+            }
+
             // Unified Settings
-            const settingsParts = [focalInput.value, apertureInput.value, shutterInput.value, isoInput.value].filter(Boolean);
-            settingsFinalInput.value = settingsParts.join('  ·  ');
+            updateSettingsSummary();
 
             // Smart Logo Recommendation
             autoSelectLogo(cameraInput.value, lensInput.value);
@@ -1119,8 +1240,15 @@
 
     function autoSelectLogo(cam, lens, target = null) {
         if (!target) target = getSelectedLogoTarget();
-        const c = cam.toLowerCase();
-        const l = lens.toLowerCase();
+        const c = cam ? cam.toLowerCase().trim() : '';
+        const l = lens ? lens.toLowerCase().trim() : '';
+
+        // If no metadata at all, explicitly clear logo
+        if (!c && !l) {
+            logoSelect.value = '';
+            loadLogo('');
+            return;
+        }
 
         let chosen = '';
         if (target === 'lens') {
@@ -1196,9 +1324,7 @@
             }
         }
 
-        if (chosen) {
-            logoSelect.value = chosen;
-        }
+        logoSelect.value = chosen || '';
         loadLogo(logoSelect.value);
     }
 
@@ -1277,8 +1403,8 @@
         const baseScale = w / 1200;
         const fontMultiplier = parseFloat(fontScale.value);
 
-        const cameraText = cleanStr(cameraInput.value);
-        const lensText = cleanStr(lensInput.value);
+        const cameraText = (showCamera && showCamera.checked) ? cleanStr(cameraInput.value) : '';
+        const lensText = (showLens && showLens.checked) ? cleanStr(lensInput.value) : '';
         const settingsText = cleanStr(settingsFinalInput.value);
 
         const mainTitle = [cameraText, lensText].filter(Boolean).join('   |   ');
@@ -1325,49 +1451,140 @@
 
         // Draw Layouts
         const hasLeftCustom = hasCustom && cPos === 'bottom_left';
-        const hasCenterCustom = hasCustom && cPos === 'bottom_center' && layout === 'minimal';
+        const hasCenterCustom = hasCustom && cPos === 'bottom_center' && (layout === 'minimal' || layout === 'cinema');
 
-        if (layout === 'modern') {
-            // 좌우 분할
-            const rightW = Math.max(Math.round(usableWidth * 0.35), Math.round(320 * baseScale));
-            const leftW = usableWidth - rightW - logoRightSpace - customRightSpace - Math.round(20 * baseScale);
-
-            const gap = Math.round(10 * baseScale);
-            let contentH = titleFontSize;
-            if (hasLeftCustom) contentH += gap + cFontSize;
-
-            const startY = h + borderSides + Math.max(10, Math.round((borderBottom - contentH) / 2)) + Math.round(titleFontSize / 2);
-
-            // Left: Camera & Lens
-            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
-            ctx.fillStyle = textPrimary;
-            ctx.fillText(mainTitle, borderSides, startY, Math.max(100, leftW));
-
-            // Left: Custom Text under metadata if bottom_left
+        if (layout === 'two_line') {
+            // 1. 두 줄 표준 (Two Line - 추천)
+            const lineGap = Math.round(10 * baseScale);
+            const availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace);
+            
+            const lines = [];
+            if (mainTitle) {
+                lines.push({ text: mainTitle, font: `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`, color: textPrimary, h: titleFontSize, maxW: availW });
+            }
+            if (settingsText) {
+                lines.push({ text: settingsText, font: `${subFontSize}px Pretendard, Outfit, sans-serif`, color: textSecondary, h: subFontSize, maxW: availW });
+            }
             if (hasLeftCustom) {
-                ctx.font = `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`;
-                ctx.fillStyle = cColor;
-                ctx.fillText(cText, borderSides, startY + Math.round((titleFontSize + cFontSize) / 2) + gap, Math.max(100, leftW));
+                lines.push({ text: cText, font: `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`, color: cColor, h: cFontSize, maxW: availW });
             }
 
-            // Right: Settings
+            const totalH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
+            let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2)) + Math.round((lines[0]?.h || 0) / 2);
+
+            lines.forEach((line, idx) => {
+                ctx.font = line.font;
+                ctx.fillStyle = line.color;
+                ctx.fillText(line.text, borderSides, currY, line.maxW);
+                if (idx < lines.length - 1) {
+                    currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
+                }
+            });
+
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else if (layout === 'modern') {
+            // 2. 좌우 분할 (Modern Clean) - 충돌 방지 로직 포함
+            ctx.font = `${titleFontSize}px Pretendard, Outfit, sans-serif`;
+            const settW = settingsText ? ctx.measureText(settingsText).width : 0;
+            const rightReserved = settW ? (settW + Math.round(35 * baseScale)) : 0;
+            const availLeftW = Math.max(120, usableWidth - rightReserved - logoRightSpace - customRightSpace);
+
+            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+            const mainW = ctx.measureText(mainTitle).width;
+
+            // 좌측 텍스트가 공간을 초과하고 카메라와 렌즈가 둘 다 있으면 좌측을 스마트 2단으로 자동 분할하여 겹침 방지!
+            if (mainW > availLeftW && cameraText && lensText) {
+                const gap = Math.round(6 * baseScale);
+                const subH = Math.round(titleFontSize * 0.85);
+                const totalLeftH = titleFontSize + gap + subH;
+                const startY = h + borderSides + Math.round((borderBottom - totalLeftH) / 2) + Math.round(titleFontSize / 2);
+
+                // Line 1: Camera Model
+                ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                ctx.fillText(cameraText, borderSides, startY, availLeftW);
+
+                // Line 2: Lens Model
+                ctx.font = `500 ${subH}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textSecondary;
+                ctx.fillText(lensText, borderSides, startY + Math.round((titleFontSize + subH) / 2) + gap, availLeftW);
+            } else {
+                // 한 줄로 배치 (너비에 맞게 안전하게 렌더링)
+                const startY = h + borderSides + (borderBottom / 2);
+                ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                ctx.fillText(mainTitle, borderSides, startY, availLeftW);
+            }
+
+            // 우측: 촬영 세부 설정
             if (settingsText) {
                 const centerY = h + borderSides + (borderBottom / 2);
                 ctx.font = `${titleFontSize}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textPrimary;
-                const settW = ctx.measureText(settingsText).width;
                 const settX = newW - borderSides - logoRightSpace - customRightSpace - settW;
                 ctx.fillText(settingsText, settX, centerY);
             }
 
-            // Logo
+            // 로고
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else if (layout === 'shot_on') {
+            // 3. Shot on 시그니처 (Shot on Signature)
+            const shotOnTitle = cameraText ? `Shot on ${cameraText}` : 'Shot on Camera';
+            const subLine = [lensText, settingsText].filter(Boolean).join('   ·   ');
+            const lineGap = Math.round(8 * baseScale);
+            const availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace);
+
+            const totalH = titleFontSize + lineGap + subFontSize;
+            const startY = h + borderSides + Math.round((borderBottom - totalH) / 2) + Math.round(titleFontSize / 2);
+
+            // 1행: Shot on 기종
+            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+            ctx.fillStyle = textPrimary;
+            ctx.fillText(shotOnTitle, borderSides, startY, availW);
+
+            // 2행: 렌즈 & 세부 설정
+            if (subLine) {
+                ctx.font = `500 ${subFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textSecondary;
+                ctx.fillText(subLine, borderSides, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap, availW);
+            }
+
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else if (layout === 'one_line') {
+            // 4. 한 줄 미니멀 (One Line)
+            const fullLine = [cameraText, lensText, settingsText].filter(Boolean).join('   ·   ');
+            const availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace);
+            const centerY = h + borderSides + (borderBottom / 2);
+
+            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
+            const measuredW = ctx.measureText(fullLine).width;
+            if (measuredW > availW && measuredW > 0) {
+                const effFontSize = Math.max(Math.round(titleFontSize * 0.7), Math.round(titleFontSize * (availW / measuredW)));
+                ctx.font = `bold ${effFontSize}px Pretendard, Outfit, sans-serif`;
+            }
+
+            ctx.fillStyle = textPrimary;
+            ctx.fillText(fullLine, borderSides, centerY, availW);
+
             if (loadedLogoImg) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
                 ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
             }
         } else if (layout === 'minimal') {
-            // 중앙 정렬
+            // 5. 감성 중앙 정렬 (Minimal Centered)
             const lineGap = Math.round(12 * baseScale);
             const lines = [];
             if (mainTitle) {
@@ -1394,38 +1611,72 @@
             });
             ctx.textAlign = 'left';
 
-            // Logo (Right)
             if (loadedLogoImg) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
                 ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
             }
-        } else {
-            // 2단/3단 표준
-            const lineGap = Math.round(12 * baseScale);
-            const lines = [];
-            if (mainTitle) {
-                lines.push({ text: mainTitle, font: `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`, color: textPrimary, h: titleFontSize });
-            }
-            if (settingsText) {
-                lines.push({ text: settingsText, font: `${subFontSize}px Pretendard, Outfit, sans-serif`, color: textSecondary, h: subFontSize });
-            }
-            if (hasLeftCustom) {
-                lines.push({ text: cText, font: `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`, color: cColor, h: cFontSize });
+        } else if (layout === 'film') {
+            // 6. 레트로 필름 (Film & Vintage)
+            const lineGap = Math.round(8 * baseScale);
+            const totalH = titleFontSize + lineGap + subFontSize;
+            const startY = h + borderSides + Math.round((borderBottom - totalH) / 2) + Math.round(titleFontSize / 2);
+
+            const camStr = cameraText ? cameraText.toUpperCase() : 'FILM 35MM';
+            const infoStr = [lensText, settingsText].filter(Boolean).join('   /   ');
+
+            // 좌측 필름 메타데이터
+            ctx.font = `bold ${titleFontSize}px "Courier New", monospace, Pretendard`;
+            ctx.fillStyle = textPrimary;
+            ctx.fillText(camStr, borderSides, startY);
+
+            if (infoStr) {
+                ctx.font = `600 ${subFontSize}px "Courier New", monospace, Pretendard`;
+                ctx.fillStyle = textSecondary;
+                ctx.fillText(infoStr, borderSides, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap);
             }
 
-            const totalH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
-            let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2)) + Math.round((lines[0]?.h || 0) / 2);
+            // 우측 빈티지 오렌지 LED 날짜 스탬프
+            let dateStamp = (dateTimeInput && dateTimeInput.value) ? dateTimeInput.value.trim() : '';
+            if (!dateStamp) {
+                const now = new Date();
+                const yy = String(now.getFullYear()).slice(2);
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                dateStamp = `'${yy}  ${mm}  ${dd}`;
+            } else {
+                dateStamp = dateStamp.split(' ')[0].replace(/\./g, '  ');
+            }
 
-            lines.forEach((line, idx) => {
-                ctx.font = line.font;
-                ctx.fillStyle = line.color;
-                ctx.fillText(line.text, borderSides, currY, usableWidth - logoRightSpace - customRightSpace);
-                if (idx < lines.length - 1) {
-                    currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
-                }
-            });
+            ctx.font = `bold ${Math.round(titleFontSize * 1.15)}px "Courier New", monospace, Pretendard`;
+            ctx.fillStyle = '#ff8f00';
+            const stampW = ctx.measureText(dateStamp).width;
+            const stampX = newW - borderSides - logoRightSpace - stampW;
+            ctx.fillText(dateStamp, stampX, h + borderSides + (borderBottom / 2));
 
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else if (layout === 'cinema') {
+            // 7. 시네마스코프 (Cinema Scope 2.39:1)
+            const cinemaText = [cameraText, lensText, settingsText].filter(Boolean).join('   ·   ');
+            const centerY = h + borderSides + (borderBottom / 2);
+
+            ctx.textAlign = 'center';
+            ctx.font = `500 ${Math.round(subFontSize * 1.05)}px Pretendard, Outfit, sans-serif`;
+            ctx.fillStyle = textPrimary;
+            ctx.fillText(cinemaText, newW / 2, centerY, usableWidth - Math.round(40 * baseScale));
+            ctx.textAlign = 'left';
+
+            if (loadedLogoImg) {
+                const lx = newW - borderSides - logoW;
+                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
+                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+            }
+        } else if (layout === 'just_frame') {
+            // 8. 프레임만 (Just Frame)
             if (loadedLogoImg) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
