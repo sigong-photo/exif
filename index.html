@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sigong Frame - 사진 메타데이터 프레임 생성기</title>
     <meta name="description" content="카메라 사진의 EXIF 메타데이터를 분석하여 세련된 사진 프레임과 브랜드 로고를 자동으로 합성해 주는 무료 웹 도구">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📸</text></svg>">
@@ -28,10 +28,16 @@
             --transition: all 0.25s ease;
         }
 
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
         }
 
         body {
@@ -41,9 +47,11 @@
             min-height: 100vh;
             padding: 30px 20px;
             line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
         }
 
         .container {
+            width: 100%;
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -75,11 +83,14 @@
             grid-template-columns: 480px 1fr;
             gap: 28px;
             align-items: start;
+            width: 100%;
+            min-width: 0;
         }
 
         @media (max-width: 1080px) {
             .app-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
         }
 
@@ -146,11 +157,17 @@
             margin-bottom: 16px;
         }
 
-        .form-row {
+        .form-row, .form-row-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 14px;
+            width: 100%;
+        }
+
+        .form-row > div, .form-row-2col > div, .controls, .preview-area, .card, .app-grid {
+            min-width: 0;
+            max-width: 100%;
         }
 
         label {
@@ -163,6 +180,9 @@
 
         input[type="text"], select {
             width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             padding: 10px 14px;
             background: var(--input-bg);
             border: 1px solid var(--input-border);
@@ -172,6 +192,8 @@
             font-family: inherit;
             outline: none;
             transition: var(--transition);
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         input[type="text"]:focus, select:focus {
@@ -582,6 +604,124 @@
             vertical-align: -2px;
             fill: currentColor;
         }
+
+        /* Mobile Responsive (iPhone 15 & Mobile devices) */
+        @media (max-width: 768px) {
+            body {
+                padding: 18px 12px 28px 12px;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            header {
+                margin-bottom: 20px;
+            }
+
+            header h1 {
+                font-size: 1.85rem;
+                letter-spacing: -0.5px;
+            }
+
+            header p {
+                font-size: 0.88rem;
+                line-height: 1.45;
+                padding: 0 4px;
+                word-break: keep-all;
+            }
+
+            .changelog-btn {
+                font-size: 0.82rem;
+                padding: 5px 14px;
+            }
+
+            .app-grid {
+                grid-template-columns: 100%;
+                gap: 16px;
+            }
+
+            .card {
+                padding: 18px 14px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+                width: 100%;
+            }
+
+            .dropzone {
+                padding: 24px 14px;
+            }
+
+            .dropzone-icon {
+                font-size: 2.2rem;
+                margin-bottom: 8px;
+            }
+
+            .dropzone p {
+                font-size: 0.92rem;
+            }
+
+            .dropzone span {
+                font-size: 0.8rem;
+            }
+
+            .section-title {
+                font-size: 0.98rem;
+                padding-bottom: 8px;
+                margin-bottom: 14px;
+            }
+
+            /* Stack select/slider form rows vertically on mobile */
+            .form-row:not(.form-row-2col) {
+                grid-template-columns: 100%;
+                gap: 12px;
+            }
+
+            .form-row-2col {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .slider-wrap {
+                gap: 8px;
+            }
+
+            .slider-val {
+                min-width: 36px;
+                font-size: 0.82rem;
+            }
+
+            .segmented-control {
+                padding: 3px;
+                gap: 3px;
+            }
+
+            .segmented-item span {
+                padding: 7px 6px;
+                font-size: 0.8rem;
+            }
+
+            .toggle-chip {
+                padding: 4px 8px;
+                font-size: 0.78rem;
+            }
+
+            .preview-sticky {
+                position: static;
+            }
+
+            .preview-box {
+                min-height: 240px;
+                padding: 12px;
+            }
+
+            .btn-primary {
+                padding: 13px 16px;
+                font-size: 0.98rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -634,7 +774,7 @@
                     <label class="toggle-chip"><input type="checkbox" id="showIso" checked><span>ISO</span></label>
                     <label class="toggle-chip"><input type="checkbox" id="showDateTime"><span>촬영 일시</span></label>
                 </div>
-                <div class="form-row">
+                <div class="form-row form-row-2col">
                     <div>
                         <label>초점거리</label>
                         <input type="text" id="focalInput" placeholder="400mm">
@@ -644,7 +784,7 @@
                         <input type="text" id="apertureInput" placeholder="f/18">
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row form-row-2col">
                     <div>
                         <label>셔터스피드</label>
                         <input type="text" id="shutterInput" placeholder="1/80s">
@@ -934,6 +1074,23 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.5.7</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>📱 아이폰15(iOS Safari) 화면 비율 및 여백 왜곡 버그 픽스</h4>
+                <ul>
+                    <li><strong>아이폰 뷰포트 확대/축소 왜곡 완전 해결</strong>:
+                        <ul>
+                            <li>CSS Grid 자식 요소 확장 및 뷰포트 초과 방지 (<code>min-width: 0</code>, <code>overflow-x: hidden</code>)</li>
+                            <li>iOS Safari 우측 빈 공간 및 좌측 쏠림 현상 제거, 100% 폭 대칭 정렬</li>
+                        </ul>
+                    </li>
+                    <li><strong>모바일 폼 컨트롤 1열 반응형 최적화</strong>:
+                        <ul>
+                            <li>모바일에서 프레임 테마, 레이아웃 선택, 여백 슬라이더 1열 전환으로 터치 사용성 개선</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.5.6</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>🚀 모바일 대용량(40MB+) 이미지 렌더링 & 다운로드 튕김 방지 엔진 탑재</h4>
