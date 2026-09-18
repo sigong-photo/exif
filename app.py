@@ -35,6 +35,16 @@ def get_font(size, bold=False):
             continue
     return ImageFont.load_default()
 
+def clean_str(val):
+    """C/EXIF의 null byte(\x00) 및 제어문자를 완벽하게 제거하여 글자 깨짐(Tofu 현상) 방지"""
+    if val is None:
+        return ""
+    if isinstance(val, (bytes, bytearray)):
+        val = val.decode("utf-8", errors="ignore")
+    s = str(val)
+    s = re.sub(r'[\x00-\x1f\x7f]', '', s)
+    return s.strip()
+
 def fit_font(text, max_width, initial_size, bold=False):
     """텍스트가 지정된 너비를 초과하지 않도록 폰트 크기 자동 축소"""
     size = max(14, int(initial_size))
@@ -57,7 +67,7 @@ def get_exif_data(image):
         if info:
             for tag, val in info.items():
                 decoded = ExifTags.TAGS.get(tag, tag)
-                meta[decoded] = val
+                meta[decoded] = clean_str(val) if isinstance(val, (str, bytes)) else val
                 
             for ifd_id in (ExifTags.IFD.Exif, ExifTags.IFD.GPSInfo, ExifTags.IFD.Interop):
                 try:
@@ -65,7 +75,7 @@ def get_exif_data(image):
                     if sub_ifd:
                         for tag, val in sub_ifd.items():
                             decoded = ExifTags.TAGS.get(tag, tag)
-                            meta[decoded] = val
+                            meta[decoded] = clean_str(val) if isinstance(val, (str, bytes)) else val
                 except Exception:
                     pass
     except Exception:
@@ -91,48 +101,48 @@ def get_exif_data(image):
             ]:
                 match = re.search(pattern, xmp_str)
                 if match:
-                    meta["LensModel"] = match.group(1).strip()
+                    meta["LensModel"] = clean_str(match.group(1))
                     break
 
         if not meta.get("Model"):
             match = re.search(r'tiff:Model=\"([^\"]+)\"', xmp_str) or re.search(r'<tiff:Model>([^<]+)</tiff:Model>', xmp_str)
             if match:
-                meta["Model"] = match.group(1).strip()
+                meta["Model"] = clean_str(match.group(1))
 
         if not meta.get("Make"):
             match = re.search(r'tiff:Make=\"([^\"]+)\"', xmp_str) or re.search(r'<tiff:Make>([^<]+)</tiff:Make>', xmp_str)
             if match:
-                meta["Make"] = match.group(1).strip()
+                meta["Make"] = clean_str(match.group(1))
 
         if not meta.get("FocalLength"):
             match = re.search(r'exif:FocalLength=\"([^\"]+)\"', xmp_str) or re.search(r'<exif:FocalLength>([^<]+)</exif:FocalLength>', xmp_str)
             if match:
-                meta["FocalLength"] = match.group(1).strip()
+                meta["FocalLength"] = clean_str(match.group(1))
 
         if not meta.get("FNumber"):
             match = re.search(r'exif:FNumber=\"([^\"]+)\"', xmp_str) or re.search(r'<exif:FNumber>([^<]+)</exif:FNumber>', xmp_str)
             if match:
-                meta["FNumber"] = match.group(1).strip()
+                meta["FNumber"] = clean_str(match.group(1))
 
         if not meta.get("ExposureTime"):
             match = re.search(r'exif:ExposureTime=\"([^\"]+)\"', xmp_str) or re.search(r'<exif:ExposureTime>([^<]+)</exif:ExposureTime>', xmp_str)
             if match:
-                meta["ExposureTime"] = match.group(1).strip()
+                meta["ExposureTime"] = clean_str(match.group(1))
 
         if not meta.get("ISOSpeedRatings") and not meta.get("PhotographicSensitivity"):
             match = re.search(r'<exif:ISOSpeedRatings>\s*<rdf:Seq>\s*<rdf:li>([^<]+)</rdf:li>', xmp_str)
             if match:
-                meta["ISOSpeedRatings"] = match.group(1).strip()
+                meta["ISOSpeedRatings"] = clean_str(match.group(1))
 
         if not meta.get("DateTimeOriginal"):
             match = re.search(r'exif:DateTimeOriginal=\"([^\"]+)\"', xmp_str) or re.search(r'<exif:DateTimeOriginal>([^<]+)</exif:DateTimeOriginal>', xmp_str) or re.search(r'xmp:CreateDate=\"([^\"]+)\"', xmp_str)
             if match:
-                meta["DateTimeOriginal"] = match.group(1).strip()
+                meta["DateTimeOriginal"] = clean_str(match.group(1))
 
         if not meta.get("Artist"):
             match = re.search(r'<dc:creator>\s*<rdf:Seq>\s*<rdf:li>([^<]+)</rdf:li>', xmp_str)
             if match:
-                meta["Artist"] = match.group(1).strip()
+                meta["Artist"] = clean_str(match.group(1))
 
     return meta
 
@@ -180,16 +190,16 @@ def add_exif_frame(image, options):
     draw = ImageDraw.Draw(framed_img)
     
     # 텍스트 내용 준비
-    camera_text = options.get("camera", "").strip()
-    lens_text = options.get("lens", "").strip()
-    settings_text = options.get("settings", "").strip()
+    camera_text = clean_str(options.get("camera", ""))
+    lens_text = clean_str(options.get("lens", ""))
+    settings_text = clean_str(options.get("settings", ""))
     
     main_title_parts = [p for p in [camera_text, lens_text] if p]
     main_title = "   |   ".join(main_title_parts)
     
     # 추가 항목들 (날짜, 작가 등)
     extra_items = options.get("extra_items", [])
-    extra_text = "  ·  ".join([item for item in extra_items if item.strip()])
+    extra_text = "  ·  ".join([clean_str(item) for item in extra_items if clean_str(item)])
     
     # 로고 리사이징
     logo_orig = options.get("logo")
@@ -220,7 +230,7 @@ def add_exif_frame(image, options):
     c_text = ""
     cw, ch = 0, 0
     if has_custom:
-        c_text = custom_opts["text"].strip()
+        c_text = clean_str(custom_opts["text"])
         c_scale = custom_opts.get("size", 1.5)
         c_bold = custom_opts.get("bold", True)
         c_font_size = int(24 * base_scale * font_multiplier * c_scale)
@@ -394,8 +404,8 @@ if uploaded_file:
     file_key = f"{uploaded_file.name}_{uploaded_file.size}"
     
     # 1. 원본 메타데이터 기본값 파싱
-    default_camera = str(exif.get("Model") or "Unknown Camera").strip()
-    default_lens = str(exif.get("LensModel") or exif.get("LensSpecification") or "Unknown Lens").strip()
+    default_camera = clean_str(exif.get("Model") or "Unknown Camera")
+    default_lens = clean_str(exif.get("LensModel") or exif.get("LensSpecification") or "Unknown Lens")
     
     # 초점거리
     focal_raw = exif.get("FocalLength", "")
@@ -443,7 +453,7 @@ if uploaded_file:
             default_date = str(date_raw).split("T")[0]
             
     # 작가 / 저작권 정보
-    default_artist = str(exif.get("Artist") or "").strip()
+    default_artist = clean_str(exif.get("Artist") or "")
     
     col1, col2 = st.columns([1, 1])
     
@@ -647,13 +657,13 @@ if uploaded_file:
     with col2:
         # 추가 항목 리스트 구성
         extra_items = []
-        if show_date and date_val.strip():
-            extra_items.append(date_val.strip())
-        if show_artist and artist_val.strip():
-            extra_items.append(artist_val.strip())
+        if show_date and clean_str(date_val):
+            extra_items.append(clean_str(date_val))
+        if show_artist and clean_str(artist_val):
+            extra_items.append(clean_str(artist_val))
             
         custom_text_dict = {
-            "text": custom_val.strip() if show_custom else "",
+            "text": clean_str(custom_val) if show_custom else "",
             "position": custom_pos,
             "size": custom_size,
             "bold": custom_bold,
@@ -662,9 +672,9 @@ if uploaded_file:
         }
             
         options = {
-            "camera": camera_val,
-            "lens": lens_val,
-            "settings": settings_final,
+            "camera": clean_str(camera_val),
+            "lens": clean_str(lens_val),
+            "settings": clean_str(settings_final),
             "extra_items": extra_items,
             "custom_text": custom_text_dict,
             "theme": theme_choice,

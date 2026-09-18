@@ -689,6 +689,12 @@
         }
     });
 
+    // Helper to sanitize EXIF strings (strips null bytes and control characters)
+    function cleanStr(val) {
+        if (val === null || val === undefined) return '';
+        return String(val).replace(/[\u0000-\u001F\u007F]/g, '').trim();
+    }
+
     // File Handler
     async function handleFile(file) {
         originalFileName = file.name;
@@ -700,11 +706,11 @@
             console.log('EXIF Data parsed:', exifData);
 
             // Populate Form
-            cameraInput.value = exifData.Model || '';
+            cameraInput.value = cleanStr(exifData.Model || '');
             
             // LensModel (support standard EXIF and Adobe XMP)
             const lensName = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || '';
-            lensInput.value = lensName;
+            lensInput.value = cleanStr(lensName);
 
             // Focal Length
             if (exifData.FocalLength) {
@@ -860,9 +866,9 @@
         const baseScale = w / 1200;
         const fontMultiplier = parseFloat(fontScale.value);
 
-        const cameraText = cameraInput.value.trim();
-        const lensText = lensInput.value.trim();
-        const settingsText = settingsFinalInput.value.trim();
+        const cameraText = cleanStr(cameraInput.value);
+        const lensText = cleanStr(lensInput.value);
+        const settingsText = cleanStr(settingsFinalInput.value);
 
         const mainTitle = [cameraText, lensText].filter(Boolean).join('   |   ');
         const layout = layoutSelect.value;
@@ -880,8 +886,8 @@
         }
 
         // Custom Text setup
-        const hasCustom = showCustomText.checked && customTextInput.value.trim();
-        const cText = hasCustom ? customTextInput.value.trim() : '';
+        const hasCustom = showCustomText.checked && cleanStr(customTextInput.value);
+        const cText = hasCustom ? cleanStr(customTextInput.value) : '';
         const cPos = customTextPos.value;
         const cScale = parseFloat(customTextSize.value);
         const cBold = customTextBold.checked;
