@@ -672,6 +672,11 @@
                             <option value="logos/viltrox_black.png">VILTROX (빌트록스 블랙)</option>
                             <option value="logos/viltrox_white.png">VILTROX (빌트록스 화이트)</option>
                         </optgroup>
+                        <optgroup label="라오와 (LAOWA)">
+                            <option value="logos/laowa_black.png">LAOWA (라오와 공식 블랙)</option>
+                            <option value="logos/laowa_cyan.png">LAOWA (라오와 시그니처 시안)</option>
+                            <option value="logos/laowa_white.png">LAOWA (라오와 화이트)</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div class="form-group">
@@ -832,6 +837,15 @@
         </div>
         <div class="modal-body">
             <div class="changelog-version">
+                <span class="changelog-badge">v1.4.4</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>🔍 라오와(LAOWA / Venus Optics) 렌즈 정보 및 로고 추가</h4>
+                <ul>
+                    <li>LAOWA 공식 브랜드 로고(블랙, 시그니처 시안, 화이트) 탑재</li>
+                    <li>라오와 렌즈명/제조사 키워드(Laowa, Venus Optics, Argus, Zero-D 등) 자동 감지 및 로고 추천</li>
+                    <li>바디 ↔ 렌즈 추천 상호 폴백 및 모델명 수동 입력 실시간 연동</li>
+                </ul>
+            </div>
+            <div class="changelog-version">
                 <span class="changelog-badge">v1.4.3</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>🏷️ 브랜드 로고 추천 기준 선택 (카메라 바디 vs 렌즈 제조사)</h4>
                 <ul>
@@ -982,6 +996,18 @@
         });
     });
 
+    cameraInput.addEventListener('input', () => {
+        if (getSelectedLogoTarget() === 'body') {
+            autoSelectLogo(cameraInput.value, lensInput.value, 'body');
+        }
+    });
+
+    lensInput.addEventListener('input', () => {
+        if (getSelectedLogoTarget() === 'lens') {
+            autoSelectLogo(cameraInput.value, lensInput.value, 'lens');
+        }
+    });
+
     function setCustomColor(color) {
         customTextColor.value = color;
         triggerRender();
@@ -1022,9 +1048,16 @@
             // Populate Form
             cameraInput.value = cleanStr(exifData.Model || '');
             
-            // LensModel (support standard EXIF and Adobe XMP)
-            const lensName = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || '';
-            lensInput.value = cleanStr(lensName);
+            // LensModel (support standard EXIF, LensMake, LensSpecification, and Adobe XMP)
+            const lensModel = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || exifData.LensSpecification || '';
+            const lensMake = exifData.LensMake || '';
+            let fullLens = lensModel;
+            if (lensMake && lensModel && !lensModel.toLowerCase().includes(lensMake.toLowerCase())) {
+                fullLens = `${lensMake} ${lensModel}`;
+            } else if (!fullLens && lensMake) {
+                fullLens = lensMake;
+            }
+            lensInput.value = cleanStr(fullLens);
 
             // Focal Length
             if (exifData.FocalLength) {
@@ -1091,7 +1124,9 @@
 
         let chosen = '';
         if (target === 'lens') {
-            if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
+            if (l.includes('laowa') || l.includes('venus') || l.includes('argus') || l.includes('zero-d') || l.includes('dreamer')) {
+                chosen = 'logos/laowa_black.png';
+            } else if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
                 chosen = 'logos/sigma_black.png';
             } else if (l.includes('tamron') || l.includes('di iii')) {
                 chosen = 'logos/tamron_black.png';
@@ -1110,6 +1145,25 @@
             } else if (l.includes('sony') || l.includes('fe ') || l.includes('gm') || l.includes('g master') || l.includes('sel')) {
                 chosen = 'logos/sony_alpha_black.png';
             }
+
+            // Fallback to body if lens didn't match
+            if (!chosen) {
+                if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
+                    chosen = 'logos/sony_alpha_black.png';
+                } else if (c.includes('leica') || c.includes('m10') || c.includes('m11') || c.includes('sl2') || c.includes('q2') || c.includes('q3')) {
+                    chosen = 'logos/leica_red.png';
+                } else if (c.includes('hasselblad') || c.includes('x1d') || c.includes('x2d') || c.includes('907x')) {
+                    chosen = 'logos/hasselblad_black.png';
+                } else if (c.includes('nikon') || c.includes('z5') || c.includes('z6') || c.includes('z7') || c.includes('z8') || c.includes('z9') || c.includes('zfc') || c.includes('d850')) {
+                    chosen = 'logos/nikon_black.png';
+                } else if (c.includes('canon') || c.includes('eos') || c.includes('r5') || c.includes('r6') || c.includes('r3') || c.includes('r7')) {
+                    chosen = 'logos/canon_red.png';
+                } else if (c.includes('fuji') || c.includes('fujifilm') || c.includes('x-t') || c.includes('x-pro') || c.includes('x-h') || c.includes('gfx')) {
+                    chosen = 'logos/fujifilm_color.png';
+                } else if (c.includes('sigma') || c.includes('fp')) {
+                    chosen = 'logos/sigma_black.png';
+                }
+            }
         } else {
             // body
             if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
@@ -1126,6 +1180,19 @@
                 chosen = 'logos/fujifilm_color.png';
             } else if (c.includes('sigma') || c.includes('fp')) {
                 chosen = 'logos/sigma_black.png';
+            }
+
+            // Fallback to lens if body didn't match
+            if (!chosen) {
+                if (l.includes('laowa') || l.includes('venus') || l.includes('argus') || l.includes('zero-d') || l.includes('dreamer')) {
+                    chosen = 'logos/laowa_black.png';
+                } else if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
+                    chosen = 'logos/sigma_black.png';
+                } else if (l.includes('tamron') || l.includes('di iii')) {
+                    chosen = 'logos/tamron_black.png';
+                } else if (l.includes('viltrox')) {
+                    chosen = 'logos/viltrox_black.png';
+                }
             }
         }
 

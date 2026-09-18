@@ -433,7 +433,12 @@ if uploaded_file:
     
     # 1. 원본 메타데이터 기본값 파싱
     default_camera = clean_str(exif.get("Model") or "Unknown Camera")
-    default_lens = clean_str(exif.get("LensModel") or exif.get("LensSpecification") or "Unknown Lens")
+    lens_model_val = exif.get("LensModel") or exif.get("LensSpecification") or ""
+    lens_make_val = exif.get("LensMake") or ""
+    if lens_make_val and lens_model_val and str(lens_make_val).lower() not in str(lens_model_val).lower():
+        default_lens = clean_str(f"{lens_make_val} {lens_model_val}")
+    else:
+        default_lens = clean_str(lens_model_val or lens_make_val or "Unknown Lens")
     
     # 초점거리
     focal_raw = exif.get("FocalLength", "")
@@ -555,6 +560,10 @@ if uploaded_file:
                 # 빌트록스
                 "VILTROX (빌트록스 공식 블랙)": "logos/viltrox_black.png",
                 "VILTROX (빌트록스 화이트 - 다크테마용)": "logos/viltrox_white.png",
+                # 라오와 (LAOWA)
+                "LAOWA (라오와 공식 블랙)": "logos/laowa_black.png",
+                "LAOWA (라오와 시그니처 시안)": "logos/laowa_cyan.png",
+                "LAOWA (라오와 화이트 - 다크테마용)": "logos/laowa_white.png",
                 # 직접 업로드
                 "직접 이미지 업로드 (PNG)": "custom",
             }
@@ -566,7 +575,9 @@ if uploaded_file:
             
             default_idx = 0
             if logo_target == "🔍 렌즈 제조사":
-                if any(k in lens_lower for k in ["tamron", "di iii"]):
+                if any(k in lens_lower for k in ["laowa", "venus optics", "venus", "argus", "zero-d", "dreamer"]):
+                    default_idx = preset_names.index("LAOWA (라오와 공식 블랙)")
+                elif any(k in lens_lower for k in ["tamron", "di iii"]):
                     default_idx = preset_names.index("TAMRON (탐론 공식 블랙)")
                 elif any(k in lens_lower for k in ["viltrox"]):
                     default_idx = preset_names.index("VILTROX (빌트록스 공식 블랙)")
@@ -584,6 +595,23 @@ if uploaded_file:
                     default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
                 elif any(k in lens_lower for k in ["sony", "fe ", "gm", "g master", "sel"]):
                     default_idx = preset_names.index("SONY α (소니 알파 블랙)")
+                
+                # 렌즈에서 감지되지 않은 경우 바디로 폴백
+                if default_idx == 0:
+                    if any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
+                        default_idx = preset_names.index("SONY α (소니 알파 블랙)")
+                    elif any(k in cam_lower for k in ["leica", "m10", "m11", "sl2", "q2", "q3"]):
+                        default_idx = preset_names.index("LEICA (라이카 레드 닷 - 시그니처)")
+                    elif any(k in cam_lower for k in ["hasselblad", "x1d", "x2d", "907x"]):
+                        default_idx = preset_names.index("HASSELBLAD (핫셀블라드 블랙)")
+                    elif any(k in cam_lower for k in ["nikon", "z5", "z6", "z7", "z8", "z9", "zfc", "d850"]):
+                        default_idx = preset_names.index("NIKON (니콘 워드마크 블랙)")
+                    elif any(k in cam_lower for k in ["canon", "eos", "r5", "r6", "r3", "r7"]):
+                        default_idx = preset_names.index("CANON (캐논 시그니처 레드)")
+                    elif any(k in cam_lower for k in ["fuji", "fujifilm", "x-t", "x-pro", "x-h", "x-s", "gfx"]):
+                        default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
+                    elif any(k in cam_lower for k in ["sigma", "fp"]):
+                        default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
             else: # 📷 카메라 바디 제조사
                 if any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
                     default_idx = preset_names.index("SONY α (소니 알파 블랙)")
@@ -599,6 +627,17 @@ if uploaded_file:
                     default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
                 elif any(k in cam_lower for k in ["sigma", "fp"]):
                     default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
+                
+                # 바디에서 감지되지 않은 경우 렌즈로 폴백
+                if default_idx == 0:
+                    if any(k in lens_lower for k in ["laowa", "venus optics", "venus", "argus", "zero-d", "dreamer"]):
+                        default_idx = preset_names.index("LAOWA (라오와 공식 블랙)")
+                    elif any(k in lens_lower for k in ["sigma", "dg dn", "contemporary", "art", "sports"]):
+                        default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
+                    elif any(k in lens_lower for k in ["tamron", "di iii"]):
+                        default_idx = preset_names.index("TAMRON (탐론 공식 블랙)")
+                    elif any(k in lens_lower for k in ["viltrox"]):
+                        default_idx = preset_names.index("VILTROX (빌트록스 공식 블랙)")
                 
             logo_choice = st.selectbox("브랜드 로고 선택", preset_names, index=default_idx, key=f"logo_sel_{file_key}_{logo_target}")
             
