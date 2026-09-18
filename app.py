@@ -334,8 +334,9 @@ def add_exif_frame(image, options):
         logo.thumbnail((int(max_logo_h * 4.5), max_logo_h))
         logo_w = logo.width + int(30 * base_scale)
 
-    logo_right_w = logo_w if logo_pos_mode == "right" else 0
-    logo_left_w = logo_w if logo_pos_mode == "left" else 0
+    is_just_frame = layout in ["여백 프레임만 (Just Frame)", "Just Frame", "just_frame"]
+    logo_right_w = (logo_w if logo_pos_mode == "right" else 0) if not is_just_frame else 0
+    logo_left_w = (logo_w if logo_pos_mode == "left" else 0) if not is_just_frame else 0
 
     def paste_frame_logo(lx=None, ly=None):
         if not logo:
@@ -622,7 +623,7 @@ def add_exif_frame(image, options):
             paste_frame_logo()
 
     elif layout == "여백 프레임만 (Just Frame)":
-        paste_frame_logo()
+        pass  # 로고 및 텍스트 없이 순수 여백 프레임만 유지
 
     # 커스텀 텍스트 (위 레이아웃에서 이미 포함되지 않은 독립 위치들)
     already_drawn = (has_custom and (

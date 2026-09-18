@@ -1372,6 +1372,17 @@
         </div>
         <div class="modal-body">
             <div class="changelog-version">
+                <span class="changelog-badge">v1.6.4</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>🖼️ '프레임만 (Just Frame)' 레이아웃 로고 미표시 처리</h4>
+                <ul>
+                    <li><strong>순수 여백 프레임 지원</strong>:
+                        <ul>
+                            <li>'프레임만' 레이아웃 선택 시 메타데이터 텍스트뿐만 아니라 브랜드 로고도 표시되지 않고 순수 사진 여백 프레임만 깔끔하게 유지되도록 개선</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="changelog-version">
                 <span class="changelog-badge">v1.6.3</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>🎯 카메라 & 렌즈 로고 위치 정렬 옵션 추가 (가운데 / 좌측 / 우측)</h4>
                 <ul>
@@ -2697,8 +2708,8 @@
         const logoPos = (photo && photo.logoPos) ? photo.logoPos : getSelectedLogoPos();
 
         let customRightSpace = (hasCustom && cPos === 'bottom_right') ? (cTextW + Math.round(35 * baseScale)) : 0;
-        let logoRightSpace = (logoW && logoPos === 'right') ? (logoW + Math.round(30 * baseScale)) : 0;
-        let logoLeftSpace = (logoW && logoPos === 'left') ? (logoW + Math.round(30 * baseScale)) : 0;
+        let logoRightSpace = (logoW && logoPos === 'right' && layout !== 'just_frame') ? (logoW + Math.round(30 * baseScale)) : 0;
+        let logoLeftSpace = (logoW && logoPos === 'left' && layout !== 'just_frame') ? (logoW + Math.round(30 * baseScale)) : 0;
 
         function drawFrameLogo(customLx = null, customLy = null) {
             if (!logoToDraw) return;
@@ -2989,8 +3000,7 @@
                 drawFrameLogo();
             }
         } else if (layout === 'just_frame') {
-            // 8. 프레임만 (Just Frame)
-            drawFrameLogo();
+            // 8. 프레임만 (Just Frame) - 텍스트 및 로고 없이 순수 사진 프레임만 유지
         }
 
         // Draw Custom Text / Watermark (positions not already handled inside layout)
