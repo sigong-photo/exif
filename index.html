@@ -756,6 +756,20 @@
                             <option value="logos/phaseone_white.png">PHASE ONE (페이즈원 모노 화이트)</option>
                             <option value="logos/phaseone_white_cyan.png">PHASE ONE (페이즈원 화이트 & 시안)</option>
                         </optgroup>
+                        <optgroup label="애플 (APPLE / iPhone)">
+                            <option value="logos/apple_black.png">APPLE (애플 공식 블랙)</option>
+                            <option value="logos/apple_white.png">APPLE (애플 모노 화이트 - 다크테마용)</option>
+                        </optgroup>
+                        <optgroup label="삼성 갤럭시 (SAMSUNG / GALAXY)">
+                            <option value="logos/galaxy_black.png">GALAXY (갤럭시 공식 블랙)</option>
+                            <option value="logos/galaxy_white.png">GALAXY (갤럭시 모노 화이트 - 다크테마용)</option>
+                            <option value="logos/galaxy_blue.png">GALAXY (갤럭시 시그니처 블루)</option>
+                            <option value="logos/samsung_galaxy_black.png">SAMSUNG Galaxy (삼성 갤럭시 블랙)</option>
+                            <option value="logos/samsung_galaxy_white.png">SAMSUNG Galaxy (삼성 갤럭시 화이트 - 다크테마용)</option>
+                            <option value="logos/samsung_blue.png">SAMSUNG (삼성 시그니처 블루)</option>
+                            <option value="logos/samsung_black.png">SAMSUNG (삼성 워드마크 블랙)</option>
+                            <option value="logos/samsung_white.png">SAMSUNG (삼성 워드마크 화이트 - 다크테마용)</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div class="form-group">
@@ -920,6 +934,37 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.5.4</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>📱 애플(iPhone) & 삼성 갤럭시(Galaxy) 스마트폰 정보 및 공식 로고 10종 탑재</h4>
+                <ul>
+                    <li><strong>Apple & Galaxy 공식 벡터 CI 로고 10종 탑재</strong>:
+                        <ul>
+                            <li><strong>Apple</strong>: 공식 블랙 (화이트 프레임용), 모노 화이트 (다크 프레임용)</li>
+                            <li><strong>GALAXY</strong>: 공식 워드마크 블랙, 화이트, 시그니처 블루 (3종)</li>
+                            <li><strong>SAMSUNG Galaxy</strong>: 콤비네이션 워드마크 블랙, 화이트 (2종)</li>
+                            <li><strong>SAMSUNG</strong>: 삼성 오벌/워드마크 블루, 블랙, 화이트 (3종)</li>
+                        </ul>
+                    </li>
+                    <li><strong>삼성 갤럭시 모델명 스마트 변환 (SM-xxxx ➔ Galaxy S24 Ultra)</strong>:
+                        <ul>
+                            <li>EXIF 내부 코드(<code>SM-S928N</code>, <code>SM-F946N</code>, <code>SM-G998N</code> 등)를 소비자 친화적인 공식 제품명(<code>Galaxy S24 Ultra</code>, <code>Galaxy Z Fold 5</code>, <code>Galaxy S21 Ultra</code> 등)으로 자동 변환</li>
+                            <li>S24 / S23 / S22 / S21 / S20 / Note 20 / Z Fold 1~6 / Z Flip 1~6 / Galaxy A 시리즈 전수 매핑</li>
+                        </ul>
+                    </li>
+                    <li><strong>아이폰 렌즈 정보 스마트 정제</strong>:
+                        <ul>
+                            <li>iPhone 특유의 장황한 EXIF(<code>iPhone 15 Pro back triple camera 6.76mm f/1.78</code>)를 <code>6.76mm f/1.78</code>로 군더더기 없이 깔끔하게 추출</li>
+                        </ul>
+                    </li>
+                    <li><strong>스마트폰 기종 자동 인식 & 로고 1순위 추천</strong>:
+                        <ul>
+                            <li>iPhone 촬영 사진 감지 시 <strong>APPLE</strong> 로고 자동 선택</li>
+                            <li>Galaxy 스마트폰 촬영 사진 감지 시 <strong>GALAXY</strong> 로고 자동 선택</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.5.3</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>👑 페이즈원(PHASE ONE) 중형 카메라 정보 및 공식 로고 추가</h4>
@@ -1179,6 +1224,117 @@
         return String(val).replace(/[\u0000-\u001F\u007F]/g, '').trim();
     }
 
+    // ── 스마트폰 (갤럭시 / 아이폰) 모델 매핑 ──────────────────────────────
+    const GALAXY_MODELS = {
+        'SM-S928': 'Galaxy S24 Ultra',
+        'SM-S926': 'Galaxy S24+',
+        'SM-S921': 'Galaxy S24',
+        'SM-S918': 'Galaxy S23 Ultra',
+        'SM-S916': 'Galaxy S23+',
+        'SM-S911': 'Galaxy S23',
+        'SM-S711': 'Galaxy S23 FE',
+        'SM-S908': 'Galaxy S22 Ultra',
+        'SM-S906': 'Galaxy S22+',
+        'SM-S901': 'Galaxy S22',
+        'SM-G998': 'Galaxy S21 Ultra',
+        'SM-G996': 'Galaxy S21+',
+        'SM-G991': 'Galaxy S21',
+        'SM-G990': 'Galaxy S21 FE',
+        'SM-G988': 'Galaxy S20 Ultra',
+        'SM-G986': 'Galaxy S20+',
+        'SM-G981': 'Galaxy S20',
+        'SM-G781': 'Galaxy S20 FE',
+        'SM-G780': 'Galaxy S20 FE',
+        'SM-N986': 'Galaxy Note 20 Ultra',
+        'SM-N981': 'Galaxy Note 20',
+        'SM-N980': 'Galaxy Note 20',
+        'SM-N976': 'Galaxy Note 10+ 5G',
+        'SM-N975': 'Galaxy Note 10+',
+        'SM-N971': 'Galaxy Note 10 5G',
+        'SM-N970': 'Galaxy Note 10',
+        'SM-G977': 'Galaxy S10 5G',
+        'SM-G975': 'Galaxy S10+',
+        'SM-G973': 'Galaxy S10',
+        'SM-G970': 'Galaxy S10e',
+        'SM-F956': 'Galaxy Z Fold 6',
+        'SM-F946': 'Galaxy Z Fold 5',
+        'SM-F936': 'Galaxy Z Fold 4',
+        'SM-F926': 'Galaxy Z Fold 3',
+        'SM-F916': 'Galaxy Z Fold 2',
+        'SM-F907': 'Galaxy Fold 5G',
+        'SM-F900': 'Galaxy Fold',
+        'SM-F741': 'Galaxy Z Flip 6',
+        'SM-F731': 'Galaxy Z Flip 5',
+        'SM-F721': 'Galaxy Z Flip 4',
+        'SM-F711': 'Galaxy Z Flip 3',
+        'SM-F707': 'Galaxy Z Flip 5G',
+        'SM-F700': 'Galaxy Z Flip',
+        'SM-A556': 'Galaxy A55 5G',
+        'SM-A546': 'Galaxy A54 5G',
+        'SM-A536': 'Galaxy A53 5G',
+        'SM-A528': 'Galaxy A52s 5G',
+        'SM-A526': 'Galaxy A52 5G',
+        'SM-A525': 'Galaxy A52',
+        'SM-A356': 'Galaxy A35 5G',
+        'SM-A346': 'Galaxy A34 5G',
+        'SM-A336': 'Galaxy A33 5G',
+        'SM-A256': 'Galaxy A25 5G',
+        'SM-A245': 'Galaxy A24',
+        'SM-A156': 'Galaxy A15 5G',
+        'SM-A155': 'Galaxy A15',
+    };
+
+    function resolveSmartphoneCamera(make, model) {
+        const m = cleanStr(make);
+        const md = cleanStr(model);
+        const mLower = m.toLowerCase();
+        const mdUpper = md.toUpperCase();
+        const mdLower = md.toLowerCase();
+
+        // Apple iPhone
+        if (mLower.includes('apple')) {
+            if (md) {
+                if (mdLower.includes('iphone') || mdLower.includes('ipad')) {
+                    return md;
+                }
+                return `Apple ${md}`;
+            }
+            return 'Apple iPhone';
+        }
+        if (mdLower.includes('iphone')) {
+            return md;
+        }
+
+        // Samsung Galaxy
+        if (mLower.includes('samsung') || mdLower.includes('galaxy') || mdUpper.startsWith('SM-')) {
+            for (const [prefix, name] of Object.entries(GALAXY_MODELS)) {
+                if (mdUpper.includes(prefix)) {
+                    return name;
+                }
+            }
+            if (mdUpper.startsWith('SM-')) {
+                return `Galaxy (${md})`;
+            }
+            if (mdLower.includes('galaxy')) {
+                return md;
+            }
+            if (md) {
+                return `Galaxy ${md}`;
+            }
+            return 'Samsung Galaxy';
+        }
+
+        return '';
+    }
+
+    function cleanSmartphoneLens(lens) {
+        if (!lens) return '';
+        let s = cleanStr(lens);
+        s = s.replace(/iphone[\w\s]*(back|front)?\s*(triple|dual|single)?\s*camera\s*/i, '').trim();
+        s = s.replace(/(samsung|galaxy)[\w\s]*(rear|back|front|wide|telephoto|ultra\s*wide)?\s*camera\s*/i, '').trim();
+        return s;
+    }
+
     // File Handler
     async function handleFile(file) {
         originalFileName = file.name;
@@ -1197,7 +1353,12 @@
             // Populate Form
             let camMake = exifData.Make || '';
             let camModel = exifData.Model || exifData.CameraModelName || '';
-            if (camMake.toLowerCase().includes('phase one') || camMake.toLowerCase().includes('phaseone')) {
+            
+            // 스마트폰 모델명 스마트 보정
+            const smartCam = resolveSmartphoneCamera(camMake, camModel);
+            if (smartCam) {
+                cameraInput.value = cleanStr(smartCam);
+            } else if (camMake.toLowerCase().includes('phase one') || camMake.toLowerCase().includes('phaseone')) {
                 if (camModel) {
                     if (!camModel.toLowerCase().includes('phase one')) {
                         camModel = `Phase One ${camModel}`;
@@ -1216,7 +1377,10 @@
             const lensModel = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || exifData.LensSpecification || '';
             const lensMake = exifData.LensMake || '';
             let fullLens = lensModel;
-            if (lensMake && lensModel && !lensModel.toLowerCase().includes(lensMake.toLowerCase())) {
+            const smartLens = cleanSmartphoneLens(lensModel);
+            if (smartLens && smartLens !== lensModel) {
+                fullLens = smartLens;
+            } else if (lensMake && lensModel && !lensModel.toLowerCase().includes(lensMake.toLowerCase())) {
                 fullLens = `${lensMake} ${lensModel}`;
             } else if (!fullLens && lensMake) {
                 fullLens = lensMake;
@@ -1350,7 +1514,11 @@
 
             // Fallback to body if lens didn't match
             if (!chosen) {
-                if (c.includes('phase one') || c.includes('phaseone') || c.includes('iq4') || c.includes('iq3') || c.includes('iq2') || c.includes('iq1') || c.includes('p65') || c.includes('p45') || c.includes('p40') || c.includes('p30') || c.includes('p25') || c.includes('p20') || c.includes('645df') || c.includes('achromatic') || c.includes('ixh') || c.includes('ixm') || c.includes('ixu')) {
+                if (c.includes('apple') || c.includes('iphone')) {
+                    chosen = 'logos/apple_black.png';
+                } else if (c.includes('galaxy') || c.includes('samsung') || c.includes('sm-s') || c.includes('sm-g') || c.includes('sm-f') || c.includes('sm-n') || c.includes('sm-a')) {
+                    chosen = 'logos/galaxy_black.png';
+                } else if (c.includes('phase one') || c.includes('phaseone') || c.includes('iq4') || c.includes('iq3') || c.includes('iq2') || c.includes('iq1') || c.includes('p65') || c.includes('p45') || c.includes('p40') || c.includes('p30') || c.includes('p25') || c.includes('p20') || c.includes('645df') || c.includes('achromatic') || c.includes('ixh') || c.includes('ixm') || c.includes('ixu')) {
                     chosen = 'logos/phaseone_color.png';
                 } else if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
                     chosen = 'logos/sony_alpha_black.png';
@@ -1372,7 +1540,11 @@
             }
         } else {
             // body
-            if (c.includes('phase one') || c.includes('phaseone') || c.includes('iq4') || c.includes('iq3') || c.includes('iq2') || c.includes('iq1') || c.includes('p65') || c.includes('p45') || c.includes('p40') || c.includes('p30') || c.includes('p25') || c.includes('p20') || c.includes('645df') || c.includes('achromatic') || c.includes('ixh') || c.includes('ixm') || c.includes('ixu')) {
+            if (c.includes('apple') || c.includes('iphone')) {
+                chosen = 'logos/apple_black.png';
+            } else if (c.includes('galaxy') || c.includes('samsung') || c.includes('sm-s') || c.includes('sm-g') || c.includes('sm-f') || c.includes('sm-n') || c.includes('sm-a')) {
+                chosen = 'logos/galaxy_black.png';
+            } else if (c.includes('phase one') || c.includes('phaseone') || c.includes('iq4') || c.includes('iq3') || c.includes('iq2') || c.includes('iq1') || c.includes('p65') || c.includes('p45') || c.includes('p40') || c.includes('p30') || c.includes('p25') || c.includes('p20') || c.includes('645df') || c.includes('achromatic') || c.includes('ixh') || c.includes('ixm') || c.includes('ixu')) {
                 chosen = 'logos/phaseone_color.png';
             } else if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
                 chosen = 'logos/sony_alpha_black.png';
@@ -1414,6 +1586,10 @@
                     chosen = 'logos/sony_g_black.png';
                 } else if (l.includes('sony') || l.includes('fe ') || l.includes('sel')) {
                     chosen = 'logos/sony_alpha_black.png';
+                } else if (l.includes('apple') || l.includes('iphone')) {
+                    chosen = 'logos/apple_black.png';
+                } else if (l.includes('galaxy') || l.includes('samsung')) {
+                    chosen = 'logos/galaxy_black.png';
                 }
             }
         }

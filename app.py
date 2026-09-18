@@ -58,6 +58,118 @@ def fit_font(text, max_width, initial_size, bold=False):
         size = int(size * 0.92)
     return get_font(size, bold=bold)
 
+# ── 스마트폰 (갤럭시 / 아이폰) 모델 매핑 ──────────────────────────────
+GALAXY_MODELS = {
+    # Galaxy S24 Series
+    "SM-S928": "Galaxy S24 Ultra",
+    "SM-S926": "Galaxy S24+",
+    "SM-S921": "Galaxy S24",
+    # Galaxy S23 Series
+    "SM-S918": "Galaxy S23 Ultra",
+    "SM-S916": "Galaxy S23+",
+    "SM-S911": "Galaxy S23",
+    "SM-S711": "Galaxy S23 FE",
+    # Galaxy S22 Series
+    "SM-S908": "Galaxy S22 Ultra",
+    "SM-S906": "Galaxy S22+",
+    "SM-S901": "Galaxy S22",
+    # Galaxy S21 Series
+    "SM-G998": "Galaxy S21 Ultra",
+    "SM-G996": "Galaxy S21+",
+    "SM-G991": "Galaxy S21",
+    "SM-G990": "Galaxy S21 FE",
+    # Galaxy S20 Series
+    "SM-G988": "Galaxy S20 Ultra",
+    "SM-G986": "Galaxy S20+",
+    "SM-G981": "Galaxy S20",
+    "SM-G781": "Galaxy S20 FE",
+    "SM-G780": "Galaxy S20 FE",
+    # Galaxy Note 20 Series
+    "SM-N986": "Galaxy Note 20 Ultra",
+    "SM-N981": "Galaxy Note 20",
+    "SM-N980": "Galaxy Note 20",
+    # Galaxy Note 10 Series
+    "SM-N976": "Galaxy Note 10+ 5G",
+    "SM-N975": "Galaxy Note 10+",
+    "SM-N971": "Galaxy Note 10 5G",
+    "SM-N970": "Galaxy Note 10",
+    # Galaxy S10 Series
+    "SM-G977": "Galaxy S10 5G",
+    "SM-G975": "Galaxy S10+",
+    "SM-G973": "Galaxy S10",
+    "SM-G970": "Galaxy S10e",
+    # Galaxy Z Fold Series
+    "SM-F956": "Galaxy Z Fold 6",
+    "SM-F946": "Galaxy Z Fold 5",
+    "SM-F936": "Galaxy Z Fold 4",
+    "SM-F926": "Galaxy Z Fold 3",
+    "SM-F916": "Galaxy Z Fold 2",
+    "SM-F907": "Galaxy Fold 5G",
+    "SM-F900": "Galaxy Fold",
+    # Galaxy Z Flip Series
+    "SM-F741": "Galaxy Z Flip 6",
+    "SM-F731": "Galaxy Z Flip 5",
+    "SM-F721": "Galaxy Z Flip 4",
+    "SM-F711": "Galaxy Z Flip 3",
+    "SM-F707": "Galaxy Z Flip 5G",
+    "SM-F700": "Galaxy Z Flip",
+    # Popular Galaxy A Series
+    "SM-A556": "Galaxy A55 5G",
+    "SM-A546": "Galaxy A54 5G",
+    "SM-A536": "Galaxy A53 5G",
+    "SM-A528": "Galaxy A52s 5G",
+    "SM-A526": "Galaxy A52 5G",
+    "SM-A525": "Galaxy A52",
+    "SM-A356": "Galaxy A35 5G",
+    "SM-A346": "Galaxy A34 5G",
+    "SM-A336": "Galaxy A33 5G",
+    "SM-A256": "Galaxy A25 5G",
+    "SM-A245": "Galaxy A24",
+    "SM-A156": "Galaxy A15 5G",
+    "SM-A155": "Galaxy A15",
+}
+
+def resolve_smartphone_camera(make, model):
+    make = clean_str(make)
+    model = clean_str(model)
+    make_lower = make.lower()
+    model_upper = model.upper()
+    
+    # Apple iPhone
+    if "apple" in make_lower:
+        if model:
+            if "iphone" in model.lower() or "ipad" in model.lower():
+                return model
+            return f"Apple {model}"
+        return "Apple iPhone"
+    if "iphone" in model.lower():
+        return model
+
+    # Samsung Galaxy
+    if "samsung" in make_lower or "galaxy" in model.lower() or model_upper.startswith("SM-"):
+        for prefix, name in GALAXY_MODELS.items():
+            if prefix in model_upper:
+                return name
+        if model_upper.startswith("SM-"):
+            return f"Galaxy ({model})"
+        if "galaxy" in model.lower():
+            return model
+        if model:
+            return f"Galaxy {model}"
+        return "Samsung Galaxy"
+        
+    return ""
+
+def clean_smartphone_lens(lens, make="", model=""):
+    if not lens:
+        return ""
+    s = clean_str(lens)
+    # iPhone 장황한 렌즈 모델명 정리 (예: "iPhone 15 Pro back triple camera 6.76mm f/1.78" -> "6.76mm f/1.78")
+    s = re.sub(r'(?i)iphone[\w\s]*(back|front)?\s*(triple|dual|single)?\s*camera\s*', '', s).strip()
+    # Samsung/Galaxy 장황한 렌즈 표기 정리
+    s = re.sub(r'(?i)(samsung|galaxy)[\w\s]*(rear|back|front|wide|telephoto|ultra\s*wide)?\s*camera\s*', '', s).strip()
+    return s
+
 def get_exif_data(image):
     meta = {}
     
@@ -544,7 +656,12 @@ if uploaded_file:
     # 1. 원본 메타데이터 기본값 파싱
     cam_make_val = clean_str(exif.get("Make") or "")
     cam_model_val = clean_str(exif.get("Model") or exif.get("CameraModelName") or "")
-    if any(p in cam_make_val.lower() for p in ["phase one", "phaseone"]):
+    
+    # 스마트폰 (애플 iPhone, 삼성 갤럭시) 자동 변환 확인
+    smart_cam = resolve_smartphone_camera(cam_make_val, cam_model_val)
+    if smart_cam:
+        default_camera = smart_cam
+    elif any(p in cam_make_val.lower() for p in ["phase one", "phaseone"]):
         if cam_model_val:
             if "phase one" not in cam_model_val.lower():
                 default_camera = clean_str(f"Phase One {cam_model_val}")
@@ -554,9 +671,13 @@ if uploaded_file:
             default_camera = "Phase One"
     else:
         default_camera = clean_str(cam_model_val or cam_make_val or "")
+        
     lens_model_val = exif.get("LensModel") or exif.get("LensSpecification") or ""
     lens_make_val = exif.get("LensMake") or ""
-    if lens_make_val and lens_model_val and str(lens_make_val).lower() not in str(lens_model_val).lower():
+    lens_cleaned = clean_smartphone_lens(lens_model_val, cam_make_val, cam_model_val)
+    if lens_cleaned != lens_model_val and lens_cleaned:
+        default_lens = clean_str(lens_cleaned)
+    elif lens_make_val and lens_model_val and str(lens_make_val).lower() not in str(lens_model_val).lower():
         default_lens = clean_str(f"{lens_make_val} {lens_model_val}")
     else:
         default_lens = clean_str(lens_model_val or lens_make_val or "")
@@ -727,6 +848,18 @@ if uploaded_file:
                 "PHASE ONE (페이즈원 공식 블랙)": "logos/phaseone_black.png",
                 "PHASE ONE (페이즈원 모노 화이트 - 다크테마용)": "logos/phaseone_white.png",
                 "PHASE ONE (페이즈원 화이트 & 시안 - 다크테마용)": "logos/phaseone_white_cyan.png",
+                # 애플 (APPLE / iPhone)
+                "APPLE (애플 공식 블랙)": "logos/apple_black.png",
+                "APPLE (애플 공식 화이트 - 다크테마용)": "logos/apple_white.png",
+                # 삼성 갤럭시 (SAMSUNG / GALAXY)
+                "GALAXY (갤럭시 공식 블랙)": "logos/galaxy_black.png",
+                "GALAXY (갤럭시 화이트 - 다크테마용)": "logos/galaxy_white.png",
+                "GALAXY (갤럭시 시그니처 블루)": "logos/galaxy_blue.png",
+                "SAMSUNG (삼성 시그니처 블루)": "logos/samsung_blue.png",
+                "SAMSUNG (삼성 블랙)": "logos/samsung_black.png",
+                "SAMSUNG (삼성 화이트 - 다크테마용)": "logos/samsung_white.png",
+                "SAMSUNG Galaxy (삼성 갤럭시 블랙)": "logos/samsung_galaxy_black.png",
+                "SAMSUNG Galaxy (삼성 갤럭시 화이트 - 다크테마용)": "logos/samsung_galaxy_white.png",
                 # 직접 업로드
                 "직접 이미지 업로드 (PNG)": "custom",
             }
@@ -771,7 +904,11 @@ if uploaded_file:
                 
                 # 렌즈에서 감지되지 않은 경우 바디로 폴백
                 if default_idx == 0:
-                    if any(k in cam_lower for k in ["phase one", "phaseone", "iq4", "iq3", "iq2", "iq1", "p65", "p45", "p40", "p30", "p25", "p20", "645df", "achromatic", "ixh", "ixm", "ixu"]):
+                    if any(k in cam_lower for k in ["apple", "iphone"]):
+                        default_idx = preset_names.index("APPLE (애플 공식 블랙)")
+                    elif any(k in cam_lower for k in ["galaxy", "samsung", "sm-s", "sm-g", "sm-f", "sm-n", "sm-a"]):
+                        default_idx = preset_names.index("GALAXY (갤럭시 공식 블랙)")
+                    elif any(k in cam_lower for k in ["phase one", "phaseone", "iq4", "iq3", "iq2", "iq1", "p65", "p45", "p40", "p30", "p25", "p20", "645df", "achromatic", "ixh", "ixm", "ixu"]):
                         default_idx = preset_names.index("PHASE ONE (페이즈원 시그니처 컬러)")
                     elif any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
                         default_idx = preset_names.index("SONY α (소니 알파 블랙)")
@@ -790,8 +927,11 @@ if uploaded_file:
                     elif any(k in cam_lower for k in ["sigma", "fp"]):
                         default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
             else: # 📷 카메라 바디 제조사
-
-                if any(k in cam_lower for k in ["phase one", "phaseone", "iq4", "iq3", "iq2", "iq1", "p65", "p45", "p40", "p30", "p25", "p20", "645df", "achromatic", "ixh", "ixm", "ixu"]):
+                if any(k in cam_lower for k in ["apple", "iphone"]):
+                    default_idx = preset_names.index("APPLE (애플 공식 블랙)")
+                elif any(k in cam_lower for k in ["galaxy", "samsung", "sm-s", "sm-g", "sm-f", "sm-n", "sm-a"]):
+                    default_idx = preset_names.index("GALAXY (갤럭시 공식 블랙)")
+                elif any(k in cam_lower for k in ["phase one", "phaseone", "iq4", "iq3", "iq2", "iq1", "p65", "p45", "p40", "p30", "p25", "p20", "645df", "achromatic", "ixh", "ixm", "ixu"]):
                     default_idx = preset_names.index("PHASE ONE (페이즈원 시그니처 컬러)")
                 elif any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
                     default_idx = preset_names.index("SONY α (소니 알파 블랙)")
@@ -832,6 +972,10 @@ if uploaded_file:
                         default_idx = preset_names.index("SONY G (소니 G 렌즈 블랙)")
                     elif any(k in lens_lower for k in ["sony", "fe ", "sel"]):
                         default_idx = preset_names.index("SONY α (소니 알파 블랙)")
+                    elif any(k in lens_lower for k in ["apple", "iphone"]):
+                        default_idx = preset_names.index("APPLE (애플 공식 블랙)")
+                    elif any(k in lens_lower for k in ["galaxy", "samsung"]):
+                        default_idx = preset_names.index("GALAXY (갤럭시 공식 블랙)")
                 
             logo_choice = st.selectbox("브랜드 로고 선택", preset_names, index=default_idx, key=f"logo_sel_{file_key}_{logo_target}")
             
