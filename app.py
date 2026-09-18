@@ -723,7 +723,7 @@ if uploaded_file:
             st.download_button(
                 label="📥 고화질 이미지 다운로드",
                 data=byte_im,
-                file_name=f"framed_{uploaded_file.name}",
+                file_name=uploaded_file.name,
                 mime="image/jpeg",
                 use_container_width=True
             )

@@ -596,7 +596,7 @@
 <script>
     // App State
     let originalImage = null;
-    let originalFileName = 'framed_photo.jpg';
+    let originalFileName = 'photo.jpg';
     let loadedLogoImg = null;
     let currentLogoUrl = '';
 
@@ -1077,7 +1077,7 @@
         setTimeout(() => {
             previewCanvas.toBlob((blob) => {
                 const link = document.createElement('a');
-                link.download = `framed_${originalFileName}`;
+                link.download = originalFileName;
                 link.href = URL.createObjectURL(blob);
                 link.click();
                 URL.revokeObjectURL(link.href);
