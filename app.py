@@ -414,6 +414,13 @@ def add_exif_frame(image, options):
 
 st.set_page_config(layout="wide", page_title="EXIF Frame Generator")
 st.title("📸 EXIF Frame Generator")
+st.caption("사진의 메타데이터와 공식 브랜드 로고를 합성해 감성적인 프레임을 완성하세요.")
+
+with st.expander("📋 버전별 변경 이력 (CHANGELOG)", expanded=False):
+    changelog_path = os.path.join(os.path.dirname(__file__), "CHANGELOG.md")
+    if os.path.exists(changelog_path):
+        with open(changelog_path, "r", encoding="utf-8") as f:
+            st.markdown(f.read())
 
 uploaded_file = st.file_uploader("사진을 업로드하세요 (JPG, PNG)", type=["jpg", "jpeg", "png"])
 
@@ -727,3 +734,13 @@ if uploaded_file:
                 mime="image/jpeg",
                 use_container_width=True
             )
+
+st.markdown("""
+<hr style="margin-top: 50px; margin-bottom: 20px; border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+<div style="text-align: center; color: #8b949e; font-size: 0.92rem; padding: 10px 0 30px 0;">
+    Copyright &copy; 2026 
+    <a href="https://www.instagram.com/sigong.photo/" target="_blank" rel="noopener noreferrer" style="color: #58a6ff; text-decoration: none; font-weight: 600;">
+        @sigong
+    </a>. All rights reserved.
+</div>
+""", unsafe_allow_html=True)
