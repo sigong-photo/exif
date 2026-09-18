@@ -1171,6 +1171,23 @@
                         <span class="slider-val" id="logoScaleVal">1.0x</span>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>로고 위치 정렬</label>
+                    <div class="segmented-control" id="logoPosGroup">
+                        <label class="segmented-item">
+                            <input type="radio" name="logoPos" value="left">
+                            <span>좌측</span>
+                        </label>
+                        <label class="segmented-item">
+                            <input type="radio" name="logoPos" value="center">
+                            <span>가운데</span>
+                        </label>
+                        <label class="segmented-item">
+                            <input type="radio" name="logoPos" value="right" checked>
+                            <span>우측 (기본)</span>
+                        </label>
+                    </div>
+                </div>
 
                 <div class="section-title" style="margin-top: 24px;">✍️ 커스텀 문구 & 워터마크</div>
                 <label class="checkbox-label">
@@ -1354,6 +1371,25 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.6.3</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>🎯 카메라 & 렌즈 로고 위치 정렬 옵션 추가 (가운데 / 좌측 / 우측)</h4>
+                <ul>
+                    <li><strong>로고 가운데 정렬 지원</strong>:
+                        <ul>
+                            <li>로고 배치 위치를 [좌측 / 가운데 / 우측 (기본)]으로 자유롭게 전환 가능</li>
+                            <li><strong>좌우 분할(Modern)</strong>: 좌측 카메라/렌즈, 중앙 브랜드 로고, 우측 촬영 설정의 3단 균형 레이아웃 구현</li>
+                            <li><strong>감성 중앙 정렬(Minimal) & 시네마스코프</strong>: 상단 브랜드 로고 + 하단 메타데이터의 완벽한 세로 중앙 정렬 제공</li>
+                            <li><strong>두 줄 표준 / Shot on / 한 줄 / 레트로 필름</strong>: 중앙 로고와 텍스트 간 겹침 방지 여백 자동 계산</li>
+                        </ul>
+                    </li>
+                    <li><strong>다중 사진 상태 보존</strong>:
+                        <ul>
+                            <li>사진별 개별 로고 정렬 위치 저장 및 일괄 다운로드 연동</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.6.2</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>📥 전체 사진 일괄 다운로드 옵션 추가 (무압축 개별 파일 & ZIP 압축)</h4>
@@ -1755,6 +1791,13 @@
         });
     });
 
+    document.querySelectorAll('input[name="logoPos"]').forEach(r => {
+        r.addEventListener('change', () => {
+            saveActivePhotoState();
+            triggerRender();
+        });
+    });
+
     if (clearAllPhotosBtn) {
         clearAllPhotosBtn.addEventListener('click', clearAllPhotos);
     }
@@ -2020,6 +2063,19 @@
         return checked ? checked.value : 'body';
     }
 
+    function getSelectedLogoPos() {
+        const checked = document.querySelector('input[name="logoPos"]:checked');
+        return checked ? checked.value : 'right';
+    }
+
+    function setLogoPosRadio(val) {
+        const target = val || 'right';
+        const radio = document.querySelector(`input[name="logoPos"][value="${target}"]`);
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+
     // Auto-select Logo URL based on camera and lens names
     function getAutoLogoUrl(cam, lens, target = null) {
         if (!target) target = getSelectedLogoTarget();
@@ -2249,6 +2305,7 @@
         };
         p.logoUrl = logoSelect.value;
         p.loadedLogoImg = loadedLogoImg;
+        p.logoPos = getSelectedLogoPos();
     }
 
     // Switch active photo
@@ -2282,6 +2339,7 @@
 
         // Logo
         logoSelect.value = p.logoUrl || '';
+        setLogoPosRadio(p.logoPos || 'right');
         if (p.loadedLogoImg) {
             loadedLogoImg = p.loadedLogoImg;
             currentLogoUrl = p.logoUrl;
@@ -2450,7 +2508,8 @@
                     loadedImage: null,
                     exif: parsed,
                     logoUrl: detectedLogo || '',
-                    loadedLogoImg: null
+                    loadedLogoImg: null,
+                    logoPos: getSelectedLogoPos()
                 };
 
                 photoList.push(item);
@@ -2635,8 +2694,27 @@
             cTextH = cFontSize;
         }
 
+        const logoPos = (photo && photo.logoPos) ? photo.logoPos : getSelectedLogoPos();
+
         let customRightSpace = (hasCustom && cPos === 'bottom_right') ? (cTextW + Math.round(35 * baseScale)) : 0;
-        let logoRightSpace = logoW ? (logoW + Math.round(30 * baseScale)) : 0;
+        let logoRightSpace = (logoW && logoPos === 'right') ? (logoW + Math.round(30 * baseScale)) : 0;
+        let logoLeftSpace = (logoW && logoPos === 'left') ? (logoW + Math.round(30 * baseScale)) : 0;
+
+        function drawFrameLogo(customLx = null, customLy = null) {
+            if (!logoToDraw) return;
+            let lx = customLx;
+            let ly = customLy !== null ? customLy : (h + borderSides + Math.round((borderBottom - logoH) / 2));
+            if (lx === null) {
+                if (logoPos === 'center') {
+                    lx = Math.round((newW - logoW) / 2);
+                } else if (logoPos === 'left') {
+                    lx = borderSides;
+                } else {
+                    lx = newW - borderSides - logoW;
+                }
+            }
+            ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
+        }
 
         // Draw Layouts
         const hasLeftCustom = hasCustom && cPos === 'bottom_left';
@@ -2645,7 +2723,11 @@
         if (layout === 'two_line') {
             // 1. 두 줄 표준 (Two Line - 추천)
             const lineGap = Math.round(10 * baseScale);
-            const availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace);
+            let availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace - logoLeftSpace);
+            if (logoToDraw && logoPos === 'center') {
+                availW = Math.max(80, Math.round((newW - logoW) / 2 - borderSides - Math.round(25 * baseScale)));
+            }
+            const textStartX = borderSides + logoLeftSpace;
             
             const lines = [];
             if (mainTitle) {
@@ -2664,23 +2746,23 @@
             lines.forEach((line, idx) => {
                 ctx.font = line.font;
                 ctx.fillStyle = line.color;
-                ctx.fillText(line.text, borderSides, currY, line.maxW);
+                ctx.fillText(line.text, textStartX, currY, line.maxW);
                 if (idx < lines.length - 1) {
                     currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
                 }
             });
 
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
-            }
+            drawFrameLogo();
         } else if (layout === 'modern') {
             // 2. 좌우 분할 (Modern Clean) - 충돌 방지 로직 포함
             ctx.font = `${titleFontSize}px Pretendard, Outfit, sans-serif`;
             const settW = settingsText ? ctx.measureText(settingsText).width : 0;
             const rightReserved = settW ? (settW + Math.round(35 * baseScale)) : 0;
-            const availLeftW = Math.max(120, usableWidth - rightReserved - logoRightSpace - customRightSpace);
+            const textStartX = borderSides + logoLeftSpace;
+            let availLeftW = Math.max(120, usableWidth - rightReserved - logoRightSpace - customRightSpace - logoLeftSpace);
+            if (logoToDraw && logoPos === 'center') {
+                availLeftW = Math.max(100, Math.round((newW - logoW) / 2 - borderSides - Math.round(25 * baseScale)));
+            }
 
             ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
             const mainW = ctx.measureText(mainTitle).width;
@@ -2695,18 +2777,18 @@
                 // Line 1: Camera Model
                 ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textPrimary;
-                ctx.fillText(cameraText, borderSides, startY, availLeftW);
+                ctx.fillText(cameraText, textStartX, startY, availLeftW);
 
                 // Line 2: Lens Model
                 ctx.font = `500 ${subH}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textSecondary;
-                ctx.fillText(lensText, borderSides, startY + Math.round((titleFontSize + subH) / 2) + gap, availLeftW);
+                ctx.fillText(lensText, textStartX, startY + Math.round((titleFontSize + subH) / 2) + gap, availLeftW);
             } else {
                 // 한 줄로 배치 (너비에 맞게 안전하게 렌더링)
                 const startY = h + borderSides + (borderBottom / 2);
                 ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textPrimary;
-                ctx.fillText(mainTitle, borderSides, startY, availLeftW);
+                ctx.fillText(mainTitle, textStartX, startY, availLeftW);
             }
 
             // 우측: 촬영 세부 설정
@@ -2714,22 +2796,28 @@
                 const centerY = h + borderSides + (borderBottom / 2);
                 ctx.font = `${titleFontSize}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textPrimary;
-                const settX = newW - borderSides - logoRightSpace - customRightSpace - settW;
-                ctx.fillText(settingsText, settX, centerY);
+                let settX = newW - borderSides - logoRightSpace - customRightSpace - settW;
+                let maxSettW = settW;
+                if (logoToDraw && logoPos === 'center') {
+                    const centerRightEdge = Math.round((newW + logoW) / 2 + Math.round(25 * baseScale));
+                    const availRightW = Math.max(80, newW - borderSides - customRightSpace - centerRightEdge);
+                    maxSettW = availRightW;
+                    settX = Math.max(centerRightEdge, newW - borderSides - customRightSpace - settW);
+                }
+                ctx.fillText(settingsText, settX, centerY, maxSettW);
             }
 
-            // 로고
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
-            }
+            drawFrameLogo();
         } else if (layout === 'shot_on') {
             // 3. Shot on 시그니처 (Shot on Signature)
             const shotOnTitle = cameraText ? `Shot on ${cameraText}` : 'Shot on Camera';
             const subLine = [lensText, settingsText].filter(Boolean).join('   ·   ');
             const lineGap = Math.round(8 * baseScale);
-            const availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace);
+            let availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace - logoLeftSpace);
+            if (logoToDraw && logoPos === 'center') {
+                availW = Math.max(80, Math.round((newW - logoW) / 2 - borderSides - Math.round(25 * baseScale)));
+            }
+            const textStartX = borderSides + logoLeftSpace;
 
             const totalH = titleFontSize + lineGap + subFontSize;
             const startY = h + borderSides + Math.round((borderBottom - totalH) / 2) + Math.round(titleFontSize / 2);
@@ -2737,24 +2825,24 @@
             // 1행: Shot on 기종
             ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
             ctx.fillStyle = textPrimary;
-            ctx.fillText(shotOnTitle, borderSides, startY, availW);
+            ctx.fillText(shotOnTitle, textStartX, startY, availW);
 
             // 2행: 렌즈 & 세부 설정
             if (subLine) {
                 ctx.font = `500 ${subFontSize}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textSecondary;
-                ctx.fillText(subLine, borderSides, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap, availW);
+                ctx.fillText(subLine, textStartX, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap, availW);
             }
 
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
-            }
+            drawFrameLogo();
         } else if (layout === 'one_line') {
             // 4. 한 줄 미니멀 (One Line)
             const fullLine = [cameraText, lensText, settingsText].filter(Boolean).join('   ·   ');
-            const availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace);
+            let availW = Math.max(100, usableWidth - logoRightSpace - customRightSpace - logoLeftSpace);
+            if (logoToDraw && logoPos === 'center') {
+                availW = Math.max(80, Math.round((newW - logoW) / 2 - borderSides - Math.round(25 * baseScale)));
+            }
+            const textStartX = borderSides + logoLeftSpace;
             const centerY = h + borderSides + (borderBottom / 2);
 
             ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
@@ -2765,13 +2853,9 @@
             }
 
             ctx.fillStyle = textPrimary;
-            ctx.fillText(fullLine, borderSides, centerY, availW);
+            ctx.fillText(fullLine, textStartX, centerY, availW);
 
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
-            }
+            drawFrameLogo();
         } else if (layout === 'minimal') {
             // 5. 감성 중앙 정렬 (Minimal Centered)
             const lineGap = Math.round(12 * baseScale);
@@ -2786,24 +2870,51 @@
                 lines.push({ text: cText, font: `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`, color: cColor, h: cFontSize });
             }
 
-            const totalH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
-            let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2)) + Math.round((lines[0]?.h || 0) / 2);
-
-            ctx.textAlign = 'center';
-            lines.forEach((line, idx) => {
-                ctx.font = line.font;
-                ctx.fillStyle = line.color;
-                ctx.fillText(line.text, newW / 2, currY);
-                if (idx < lines.length - 1) {
-                    currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
+            if (logoToDraw && logoPos === 'center') {
+                // 로고 중앙 정렬 시: 상단 로고 + 하단 메타데이터를 세로로 정렬하여 완벽한 중앙 감성 프레임 구성
+                const logoGap = Math.round(10 * baseScale);
+                const textLinesH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
+                let actualLogoH = logoH;
+                let actualLogoW = logoW;
+                const maxStackH = Math.round(borderBottom * 0.82);
+                if (actualLogoH + logoGap + textLinesH > maxStackH) {
+                    actualLogoH = Math.max(14, maxStackH - textLinesH - logoGap);
+                    actualLogoW = Math.round(actualLogoH * (logoToDraw.width / logoToDraw.height));
                 }
-            });
-            ctx.textAlign = 'left';
 
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
+                const totalH = (lines.length > 0) ? (actualLogoH + logoGap + textLinesH) : actualLogoH;
+                let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2));
+
+                const lx = Math.round((newW - actualLogoW) / 2);
+                ctx.drawImage(logoToDraw, lx, currY, actualLogoW, actualLogoH);
+                currY += actualLogoH + logoGap;
+
+                ctx.textAlign = 'center';
+                lines.forEach((line, idx) => {
+                    ctx.font = line.font;
+                    ctx.fillStyle = line.color;
+                    ctx.fillText(line.text, newW / 2, currY + Math.round(line.h / 2));
+                    if (idx < lines.length - 1) {
+                        currY += line.h + lineGap;
+                    }
+                });
+                ctx.textAlign = 'left';
+            } else {
+                const totalH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
+                let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2)) + Math.round((lines[0]?.h || 0) / 2);
+
+                ctx.textAlign = 'center';
+                lines.forEach((line, idx) => {
+                    ctx.font = line.font;
+                    ctx.fillStyle = line.color;
+                    ctx.fillText(line.text, newW / 2, currY);
+                    if (idx < lines.length - 1) {
+                        currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
+                    }
+                });
+                ctx.textAlign = 'left';
+
+                drawFrameLogo();
             }
         } else if (layout === 'film') {
             // 6. 레트로 필름 (Film & Vintage)
@@ -2811,18 +2922,24 @@
             const totalH = titleFontSize + lineGap + subFontSize;
             const startY = h + borderSides + Math.round((borderBottom - totalH) / 2) + Math.round(titleFontSize / 2);
 
+            let textStartX = borderSides + logoLeftSpace;
+            let availLeft = Math.max(100, usableWidth - logoLeftSpace - logoRightSpace);
+            if (logoToDraw && logoPos === 'center') {
+                availLeft = Math.max(80, Math.round((newW - logoW) / 2 - borderSides - Math.round(25 * baseScale)));
+            }
+
             const camStr = cameraText ? cameraText.toUpperCase() : 'FILM 35MM';
             const infoStr = [lensText, settingsText].filter(Boolean).join('   /   ');
 
             // 좌측 필름 메타데이터
             ctx.font = `bold ${titleFontSize}px "Courier New", monospace, Pretendard`;
             ctx.fillStyle = textPrimary;
-            ctx.fillText(camStr, borderSides, startY);
+            ctx.fillText(camStr, textStartX, startY, availLeft);
 
             if (infoStr) {
                 ctx.font = `600 ${subFontSize}px "Courier New", monospace, Pretendard`;
                 ctx.fillStyle = textSecondary;
-                ctx.fillText(infoStr, borderSides, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap);
+                ctx.fillText(infoStr, textStartX, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap, availLeft);
             }
 
             // 우측 빈티지 오렌지 LED 날짜 스탬프
@@ -2843,38 +2960,41 @@
             const stampX = newW - borderSides - logoRightSpace - stampW;
             ctx.fillText(dateStamp, stampX, h + borderSides + (borderBottom / 2));
 
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
-            }
+            drawFrameLogo();
         } else if (layout === 'cinema') {
             // 7. 시네마스코프 (Cinema Scope 2.39:1)
             const cinemaText = [cameraText, lensText, settingsText].filter(Boolean).join('   ·   ');
-            const centerY = h + borderSides + (borderBottom / 2);
 
-            ctx.textAlign = 'center';
-            ctx.font = `500 ${Math.round(subFontSize * 1.05)}px Pretendard, Outfit, sans-serif`;
-            ctx.fillStyle = textPrimary;
-            ctx.fillText(cinemaText, newW / 2, centerY, usableWidth - Math.round(40 * baseScale));
-            ctx.textAlign = 'left';
+            if (logoToDraw && logoPos === 'center') {
+                const logoGap = Math.round(8 * baseScale);
+                const totalH = logoH + logoGap + subFontSize;
+                let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2));
 
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
+                const lx = Math.round((newW - logoW) / 2);
+                ctx.drawImage(logoToDraw, lx, currY, logoW, logoH);
+
+                ctx.textAlign = 'center';
+                ctx.font = `500 ${Math.round(subFontSize * 1.05)}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                ctx.fillText(cinemaText, newW / 2, currY + logoH + logoGap + Math.round(subFontSize / 2), usableWidth - Math.round(40 * baseScale));
+                ctx.textAlign = 'left';
+            } else {
+                const centerY = h + borderSides + (borderBottom / 2);
+                ctx.textAlign = 'center';
+                ctx.font = `500 ${Math.round(subFontSize * 1.05)}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = textPrimary;
+                ctx.fillText(cinemaText, newW / 2, centerY, usableWidth - Math.round(40 * baseScale));
+                ctx.textAlign = 'left';
+
+                drawFrameLogo();
             }
         } else if (layout === 'just_frame') {
             // 8. 프레임만 (Just Frame)
-            if (logoToDraw) {
-                const lx = newW - borderSides - logoW;
-                const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
-            }
+            drawFrameLogo();
         }
 
         // Draw Custom Text / Watermark (positions not already handled inside layout)
-        const alreadyDrawn = hasCustom && (cPos === 'bottom_left' || (cPos === 'bottom_center' && layout === 'minimal'));
+        const alreadyDrawn = hasCustom && (cPos === 'bottom_left' || (cPos === 'bottom_center' && (layout === 'minimal' || layout === 'cinema')));
         if (hasCustom && cText && !alreadyDrawn) {
             ctx.font = `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`;
             ctx.fillStyle = cColor;
@@ -2888,6 +3008,9 @@
                 cy = h + borderSides + (borderBottom / 2);
             } else if (cPos === 'bottom_center') {
                 cx = (newW - cTextW) / 2;
+                cy = h + borderSides + (borderBottom / 2);
+            } else if (cPos === 'bottom_left') {
+                cx = borderSides + logoLeftSpace;
                 cy = h + borderSides + (borderBottom / 2);
             } else if (cPos === 'inside_br') {
                 cx = borderSides + w - padInside - cTextW;

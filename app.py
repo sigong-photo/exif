@@ -318,6 +318,14 @@ def add_exif_frame(image, options):
     logo = None
     logo_w = 0
     logo_scale = options.get("logo_scale", 1.0)
+    logo_pos_val = options.get("logo_pos", "우측 (기본)")
+    if "가운데" in logo_pos_val:
+        logo_pos_mode = "center"
+    elif "좌측" in logo_pos_val:
+        logo_pos_mode = "left"
+    else:
+        logo_pos_mode = "right"
+
     if logo_orig:
         logo = logo_orig.copy()
         if logo.mode != "RGBA":
@@ -325,6 +333,24 @@ def add_exif_frame(image, options):
         max_logo_h = min(int(border_bottom * 0.75), max(10, int(border_bottom * 0.45 * logo_scale)))
         logo.thumbnail((int(max_logo_h * 4.5), max_logo_h))
         logo_w = logo.width + int(30 * base_scale)
+
+    logo_right_w = logo_w if logo_pos_mode == "right" else 0
+    logo_left_w = logo_w if logo_pos_mode == "left" else 0
+
+    def paste_frame_logo(lx=None, ly=None):
+        if not logo:
+            return
+        actual_ly = ly if ly is not None else (h + border_sides + max(10, int((border_bottom - logo.height) / 2)))
+        if lx is None:
+            if logo_pos_mode == "center":
+                actual_lx = int((new_width - logo.width) / 2)
+            elif logo_pos_mode == "left":
+                actual_lx = border_sides
+            else:
+                actual_lx = new_width - border_sides - logo.width
+        else:
+            actual_lx = lx
+        framed_img.paste(logo, (actual_lx, actual_ly), mask=logo)
         
     layout = options.get("layout", "좌우 분할 (Modern)")
     usable_width = new_width - (border_sides * 2)
@@ -368,7 +394,11 @@ def add_exif_frame(image, options):
     line_gap_std = int(10 * base_scale)
     
     if layout in ["상하 2줄 분할 (Two Line - 추천)", "2단/3단 표준 정렬"]:
-        avail_w = max(100, usable_width - logo_w - custom_right_w)
+        avail_w = max(100, usable_width - logo_right_w - custom_right_w - logo_left_w)
+        if logo and logo_pos_mode == "center":
+            avail_w = max(80, int((new_width - logo.width) / 2 - border_sides - int(25 * base_scale)))
+        text_start_x = border_sides + logo_left_w
+
         lines = []
         if main_title:
             t_font = fit_font(main_title, avail_w, init_title_size, bold=True)
@@ -389,13 +419,10 @@ def add_exif_frame(image, options):
         curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
         
         for text_val, font_val, color_val, text_h in lines:
-            draw.text((border_sides, curr_y), text_val, fill=color_val, font=font_val)
+            draw.text((text_start_x, curr_y), text_val, fill=color_val, font=font_val)
             curr_y += text_h + line_gap_std
             
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        paste_frame_logo()
 
     elif layout in ["좌우 분할 (Modern Clean)", "좌우 분할 (Modern)"]:
         sett_font = get_font(init_title_size, bold=False)
@@ -407,7 +434,10 @@ def add_exif_frame(image, options):
             sett_h = s_bbox[3] - s_bbox[1]
             
         right_reserved = sett_w + int(35 * base_scale) if sett_w else 0
-        avail_left_w = max(120, usable_width - right_reserved - logo_w - custom_right_w)
+        text_start_x = border_sides + logo_left_w
+        avail_left_w = max(120, usable_width - right_reserved - logo_right_w - custom_right_w - logo_left_w)
+        if logo and logo_pos_mode == "center":
+            avail_left_w = max(100, int((new_width - logo.width) / 2 - border_sides - int(25 * base_scale)))
         
         # 텍스트 충돌 방지: 좌측 텍스트가 공간 초과 시 스마트 2단 분할
         t_font = get_font(init_title_size, bold=True)
@@ -428,34 +458,37 @@ def add_exif_frame(image, options):
             total_lh = c_h + gap + l_h
             start_y = h + border_sides + max(10, int((border_bottom - total_lh) / 2))
             
-            draw.text((border_sides, start_y), camera_text, fill=text_primary, font=c_font_split)
-            draw.text((border_sides, start_y + c_h + gap), lens_text, fill=text_secondary, font=l_font_split)
+            draw.text((text_start_x, start_y), camera_text, fill=text_primary, font=c_font_split)
+            draw.text((text_start_x, start_y + c_h + gap), lens_text, fill=text_secondary, font=l_font_split)
         else:
             t_font_fit = fit_font(main_title, avail_left_w, init_title_size, bold=True)
             t_box = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font_fit)
             t_h = t_box[3] - t_box[1]
             start_y = h + border_sides + max(10, int((border_bottom - t_h) / 2))
             if main_title:
-                draw.text((border_sides, start_y), main_title, fill=text_primary, font=t_font_fit)
+                draw.text((text_start_x, start_y), main_title, fill=text_primary, font=t_font_fit)
                 
         if settings_text:
-            sett_font_fit = fit_font(settings_text, max(100, usable_width - avail_left_w - logo_w - custom_right_w), init_title_size, bold=False)
+            sett_font_fit = fit_font(settings_text, max(100, usable_width - avail_left_w - logo_right_w - custom_right_w), init_title_size, bold=False)
             sb = draw.textbbox((0, 0), settings_text, font=sett_font_fit)
             sw = sb[2] - sb[0]
             sh = sb[3] - sb[1]
-            sett_x = new_width - border_sides - logo_w - custom_right_w - sw
+            sett_x = new_width - border_sides - logo_right_w - custom_right_w - sw
+            if logo and logo_pos_mode == "center":
+                center_right_edge = int((new_width + logo.width) / 2 + int(25 * base_scale))
+                sett_x = max(center_right_edge, new_width - border_sides - custom_right_w - sw)
             sett_y = h + border_sides + max(10, int((border_bottom - sh) / 2))
             draw.text((sett_x, sett_y), settings_text, fill=text_primary, font=sett_font_fit)
             
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        paste_frame_logo()
 
     elif layout == "Shot on 스타일 (Shot on Signature)":
         shot_on_title = f"Shot on {camera_text}" if camera_text else "Shot on Camera"
         sub_line = "   ·   ".join([p for p in [lens_text, settings_text] if p])
-        avail_w = max(100, usable_width - logo_w - custom_right_w)
+        avail_w = max(100, usable_width - logo_right_w - custom_right_w - logo_left_w)
+        if logo and logo_pos_mode == "center":
+            avail_w = max(80, int((new_width - logo.width) / 2 - border_sides - int(25 * base_scale)))
+        text_start_x = border_sides + logo_left_w
         
         t_font = fit_font(shot_on_title, avail_w, init_title_size, bold=True)
         s_font = fit_font(sub_line if sub_line else "A", avail_w, init_sub_size, bold=False)
@@ -468,32 +501,29 @@ def add_exif_frame(image, options):
         total_h = th + (line_gap + sh if sub_line else 0)
         curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
         
-        draw.text((border_sides, curr_y), shot_on_title, fill=text_primary, font=t_font)
+        draw.text((text_start_x, curr_y), shot_on_title, fill=text_primary, font=t_font)
         if sub_line:
-            draw.text((border_sides, curr_y + th + line_gap), sub_line, fill=text_secondary, font=s_font)
+            draw.text((text_start_x, curr_y + th + line_gap), sub_line, fill=text_secondary, font=s_font)
             
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        paste_frame_logo()
 
     elif layout == "심플 1줄 (One Line)":
         full_line = "   ·   ".join([p for p in [camera_text, lens_text, settings_text] if p])
-        avail_w = max(100, usable_width - logo_w - custom_right_w)
+        avail_w = max(100, usable_width - logo_right_w - custom_right_w - logo_left_w)
+        if logo and logo_pos_mode == "center":
+            avail_w = max(80, int((new_width - logo.width) / 2 - border_sides - int(25 * base_scale)))
+        text_start_x = border_sides + logo_left_w
         t_font = fit_font(full_line, avail_w, init_title_size, bold=True)
         tb = draw.textbbox((0, 0), full_line if full_line else "A", font=t_font)
         th = tb[3] - tb[1]
         curr_y = h + border_sides + max(10, int((border_bottom - th) / 2))
         if full_line:
-            draw.text((border_sides, curr_y), full_line, fill=text_primary, font=t_font)
+            draw.text((text_start_x, curr_y), full_line, fill=text_primary, font=t_font)
             
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        paste_frame_logo()
 
     elif layout == "중앙 정렬 (Minimal)":
-        avail_w = usable_width - custom_right_w - logo_w
+        avail_w = usable_width - custom_right_w - logo_right_w - logo_left_w
         t_font = fit_font(main_title, avail_w, init_title_size, bold=True)
         s_font = fit_font(settings_text, avail_w, init_sub_size, bold=False)
         has_center_custom = has_custom and (c_pos == "하단 프레임 - 중앙")
@@ -509,17 +539,22 @@ def add_exif_frame(image, options):
             lines.append((c_text, c_font, c_rgb, cw, ch))
             
         line_gap = int(14 * base_scale)
-        total_h = sum([l[4] for l in lines]) + line_gap * max(0, len(lines) - 1) if lines else 0
-        curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
-        
-        for text_val, font_val, color_val, text_w, text_h in lines:
-            draw.text((int((new_width - text_w) / 2), curr_y), text_val, fill=color_val, font=font_val)
-            curr_y += text_h + line_gap
-            
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        if logo and logo_pos_mode == "center":
+            logo_gap = int(10 * base_scale)
+            total_h = sum([l[4] for l in lines]) + line_gap * max(0, len(lines) - 1) + logo.height + logo_gap if lines else logo.height
+            curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+            framed_img.paste(logo, (int((new_width - logo.width) / 2), curr_y), mask=logo)
+            curr_y += logo.height + logo_gap
+            for text_val, font_val, color_val, text_w, text_h in lines:
+                draw.text((int((new_width - text_w) / 2), curr_y), text_val, fill=color_val, font=font_val)
+                curr_y += text_h + line_gap
+        else:
+            total_h = sum([l[4] for l in lines]) + line_gap * max(0, len(lines) - 1) if lines else 0
+            curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+            for text_val, font_val, color_val, text_w, text_h in lines:
+                draw.text((int((new_width - text_w) / 2), curr_y), text_val, fill=color_val, font=font_val)
+                curr_y += text_h + line_gap
+            paste_frame_logo()
 
     elif layout == "레트로 필름 (Film Date)":
         cam_str = camera_text.upper() if camera_text else "FILM 35MM"
@@ -538,7 +573,11 @@ def add_exif_frame(image, options):
         st_w = st_box[2] - st_box[0]
         st_h = st_box[3] - st_box[1]
         
-        avail_left = max(100, usable_width - st_w - logo_w - int(35 * base_scale))
+        avail_left = max(100, usable_width - st_w - logo_right_w - logo_left_w - int(35 * base_scale))
+        if logo and logo_pos_mode == "center":
+            avail_left = max(80, int((new_width - logo.width) / 2 - border_sides - int(25 * base_scale)))
+        text_start_x = border_sides + logo_left_w
+
         t_font = fit_font(cam_str, avail_left, init_title_size, bold=True)
         s_font = fit_font(info_str if info_str else "A", avail_left, init_sub_size, bold=False)
         
@@ -551,41 +590,39 @@ def add_exif_frame(image, options):
         total_h = th + (line_gap + sh if info_str else 0)
         curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
         
-        draw.text((border_sides, curr_y), cam_str, fill=text_primary, font=t_font)
+        draw.text((text_start_x, curr_y), cam_str, fill=text_primary, font=t_font)
         if info_str:
-            draw.text((border_sides, curr_y + th + line_gap), info_str, fill=text_secondary, font=s_font)
+            draw.text((text_start_x, curr_y + th + line_gap), info_str, fill=text_secondary, font=s_font)
             
         # 오렌지 날짜 스탬프 출력
-        stamp_x = new_width - border_sides - logo_w - st_w - int(10 * base_scale)
+        stamp_x = new_width - border_sides - logo_right_w - st_w - int(10 * base_scale)
         stamp_y = h + border_sides + max(10, int((border_bottom - st_h) / 2))
         draw.text((stamp_x, stamp_y), date_stamp, fill=(255, 143, 0), font=stamp_font)
         
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        paste_frame_logo()
 
     elif layout == "시네마스코프 (Cinema 2.39:1)":
         cinema_text = "   ·   ".join([p for p in [camera_text, lens_text, settings_text] if p])
-        t_font = fit_font(cinema_text, usable_width - logo_w - int(40 * base_scale), init_sub_size, bold=False)
+        t_font = fit_font(cinema_text, usable_width - logo_right_w - logo_left_w - int(40 * base_scale), init_sub_size, bold=False)
         tb = draw.textbbox((0, 0), cinema_text if cinema_text else "A", font=t_font)
         tw = tb[2] - tb[0]
         th = tb[3] - tb[1]
-        curr_y = h + border_sides + max(10, int((border_bottom - th) / 2))
-        
-        if cinema_text:
-            draw.text((int((new_width - tw) / 2), curr_y), cinema_text, fill=text_primary, font=t_font)
-            
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+
+        if logo and logo_pos_mode == "center":
+            logo_gap = int(8 * base_scale)
+            total_h = logo.height + logo_gap + th
+            curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+            framed_img.paste(logo, (int((new_width - logo.width) / 2), curr_y), mask=logo)
+            if cinema_text:
+                draw.text((int((new_width - tw) / 2), curr_y + logo.height + logo_gap), cinema_text, fill=text_primary, font=t_font)
+        else:
+            curr_y = h + border_sides + max(10, int((border_bottom - th) / 2))
+            if cinema_text:
+                draw.text((int((new_width - tw) / 2), curr_y), cinema_text, fill=text_primary, font=t_font)
+            paste_frame_logo()
 
     elif layout == "여백 프레임만 (Just Frame)":
-        if logo:
-            logo_x = new_width - border_sides - logo.width
-            logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
-            framed_img.paste(logo, (logo_x, logo_y), mask=logo)
+        paste_frame_logo()
 
     # 커스텀 텍스트 (위 레이아웃에서 이미 포함되지 않은 독립 위치들)
     already_drawn = (has_custom and (
@@ -597,10 +634,13 @@ def add_exif_frame(image, options):
         pad_inside = int(w * 0.025)
         
         if c_pos == "하단 프레임 - 우측 (브랜드 로고 자리)":
-            cx = new_width - border_sides - logo_w - cw
+            cx = new_width - border_sides - logo_right_w - cw
             cy = h + border_sides + max(10, int((border_bottom - ch) / 2))
         elif c_pos == "하단 프레임 - 중앙":
             cx = int((new_width - cw) / 2)
+            cy = h + border_sides + max(10, int((border_bottom - ch) / 2))
+        elif c_pos == "하단 프레임 - 좌측 (메타데이터 하단)":
+            cx = border_sides + logo_left_w
             cy = h + border_sides + max(10, int((border_bottom - ch) / 2))
         elif c_pos == "사진 내부 - 우측 하단 (워터마크)":
             cx = border_sides + w - pad_inside - cw
@@ -990,9 +1030,14 @@ if uploaded_file:
                     chosen_logo_img = Image.open(logo_file_path)
                     
             if chosen_logo_img:
-                logo_scale = st.slider("로고 크기 배율", min_value=0.4, max_value=2.2, value=1.0, step=0.1, key=f"logo_scale_{file_key}")
+                l_col1, l_col2 = st.columns(2)
+                with l_col1:
+                    logo_scale = st.slider("로고 크기 배율", min_value=0.4, max_value=2.2, value=1.0, step=0.1, key=f"logo_scale_{file_key}")
+                with l_col2:
+                    logo_pos = st.selectbox("로고 정렬 위치", ["우측 (기본)", "가운데", "좌측"], index=0, key=f"logo_pos_{file_key}")
             else:
                 logo_scale = 1.0
+                logo_pos = "우측 (기본)"
 
         with st.expander("✍️ 커스텀 문구 (서명 / 장소 / 추가 텍스트)", expanded=False):
             show_custom = st.checkbox("커스텀 문구 활성화", value=False, key=f"chk_custom_{file_key}")
@@ -1125,7 +1170,8 @@ if uploaded_file:
             "bottom_margin_pct": bottom_margin,
             "side_margin_pct": side_margin,
             "logo": chosen_logo_img,
-            "logo_scale": logo_scale
+            "logo_scale": logo_scale,
+            "logo_pos": logo_pos
         }
         
         st.subheader("🖼️ 완성 미리보기")
