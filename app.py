@@ -228,6 +228,7 @@ def add_exif_frame(image, options):
     custom_right_w = 0
     c_font = None
     c_text = ""
+    c_rgb = text_primary
     cw, ch = 0, 0
     if has_custom:
         c_text = clean_str(custom_opts["text"])
@@ -238,6 +239,15 @@ def add_exif_frame(image, options):
         c_bbox = draw.textbbox((0, 0), c_text, font=c_font)
         cw = c_bbox[2] - c_bbox[0]
         ch = c_bbox[3] - c_bbox[1]
+        
+        raw_color = custom_opts.get("color")
+        if raw_color:
+            try:
+                c_rgb = tuple(int(raw_color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+            except Exception:
+                c_rgb = text_primary
+        else:
+            c_rgb = (255, 255, 255) if "사진 내부" in c_pos else text_primary
         
         if c_pos == "하단 프레임 - 우측 (브랜드 로고 자리)":
             custom_right_w = cw + int(35 * base_scale)
@@ -254,14 +264,26 @@ def add_exif_frame(image, options):
         t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
         s_bbox = draw.textbbox((0, 0), extra_text if extra_text else "A", font=s_font)
         
-        content_h = (t_bbox[3] - t_bbox[1]) + ((s_bbox[3] - s_bbox[1]) if extra_text else 0) + (int(12 * base_scale) if extra_text else 0)
+        has_left_custom = has_custom and (c_pos == "하단 프레임 - 좌측 (메타데이터 하단)")
+        
+        line_gap = int(12 * base_scale)
+        content_h = (t_bbox[3] - t_bbox[1])
+        if extra_text:
+            content_h += line_gap + (s_bbox[3] - s_bbox[1])
+        if has_left_custom:
+            content_h += line_gap + ch
+            
         start_y = h + border_sides + max(10, int((border_bottom - content_h) / 2))
         
-        # 좌측 텍스트 출력
-        draw.text((border_sides, start_y), main_title, fill=text_primary, font=t_font)
+        curr_y = start_y
+        if main_title:
+            draw.text((border_sides, curr_y), main_title, fill=text_primary, font=t_font)
+            curr_y += (t_bbox[3] - t_bbox[1]) + line_gap
         if extra_text:
-            next_y = start_y + (t_bbox[3] - t_bbox[1]) + int(12 * base_scale)
-            draw.text((border_sides, next_y), extra_text, fill=text_secondary, font=s_font)
+            draw.text((border_sides, curr_y), extra_text, fill=text_secondary, font=s_font)
+            curr_y += (s_bbox[3] - s_bbox[1]) + line_gap
+        if has_left_custom:
+            draw.text((border_sides, curr_y), c_text, fill=c_rgb, font=c_font)
             
         # 우측 설정값 출력
         if settings_text:
@@ -282,20 +304,26 @@ def add_exif_frame(image, options):
         sub_line = "  ·  ".join([p for p in [settings_text, extra_text] if p])
         s_font = fit_font(sub_line, usable_width - custom_right_w - logo_w, init_sub_size, bold=False)
         
+        has_center_custom = has_custom and (c_pos == "하단 프레임 - 중앙")
+        
         t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
         s_bbox = draw.textbbox((0, 0), sub_line if sub_line else "A", font=s_font)
         
-        content_h = (t_bbox[3] - t_bbox[1]) + ((s_bbox[3] - s_bbox[1]) if sub_line else 0) + (int(14 * base_scale) if sub_line else 0)
-        start_y = h + border_sides + max(10, int((border_bottom - content_h) / 2))
-        
+        line_gap = int(14 * base_scale)
+        lines = []
         if main_title:
-            t_w = t_bbox[2] - t_bbox[0]
-            draw.text((int((new_width - t_w) / 2), start_y), main_title, fill=text_primary, font=t_font)
-            
+            lines.append((main_title, t_font, text_primary, t_bbox[2] - t_bbox[0], t_bbox[3] - t_bbox[1]))
         if sub_line:
-            s_w = s_bbox[2] - s_bbox[0]
-            next_y = start_y + (t_bbox[3] - t_bbox[1]) + int(14 * base_scale)
-            draw.text((int((new_width - s_w) / 2), next_y), sub_line, fill=text_secondary, font=s_font)
+            lines.append((sub_line, s_font, text_secondary, s_bbox[2] - s_bbox[0], s_bbox[3] - s_bbox[1]))
+        if has_center_custom:
+            lines.append((c_text, c_font, c_rgb, cw, ch))
+            
+        total_h = sum([l[4] for l in lines]) + line_gap * max(0, len(lines) - 1) if lines else 0
+        curr_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
+        
+        for text_val, font_val, color_val, text_w, text_h in lines:
+            draw.text((int((new_width - text_w) / 2), curr_y), text_val, fill=color_val, font=font_val)
+            curr_y += text_h + line_gap
             
         if logo:
             logo_x = new_width - border_sides - logo.width
@@ -307,47 +335,43 @@ def add_exif_frame(image, options):
         s_font = fit_font(settings_text, usable_width - logo_w - custom_right_w, init_sub_size, bold=False)
         e_font = fit_font(extra_text if extra_text else " ", usable_width - logo_w - custom_right_w, max(12, int(init_sub_size * 0.9)), bold=False)
         
+        has_left_custom = has_custom and (c_pos == "하단 프레임 - 좌측 (메타데이터 하단)")
+        
         t_bbox = draw.textbbox((0, 0), main_title if main_title else "A", font=t_font)
         s_bbox = draw.textbbox((0, 0), settings_text if settings_text else "A", font=s_font)
         e_bbox = draw.textbbox((0, 0), extra_text if extra_text else "A", font=e_font)
         
         line_gap = int(12 * base_scale)
-        lines = [t_bbox[3] - t_bbox[1]]
+        lines = []
+        if main_title:
+            lines.append((main_title, t_font, text_primary, t_bbox[3] - t_bbox[1]))
         if settings_text:
-            lines.append(s_bbox[3] - s_bbox[1])
+            lines.append((settings_text, s_font, text_secondary, s_bbox[3] - s_bbox[1]))
         if extra_text:
-            lines.append(e_bbox[3] - e_bbox[1])
-        total_h = sum(lines) + line_gap * (len(lines) - 1)
+            lines.append((extra_text, e_font, text_secondary, e_bbox[3] - e_bbox[1]))
+        if has_left_custom:
+            lines.append((c_text, c_font, c_rgb, ch))
+            
+        total_h = sum([l[3] for l in lines]) + line_gap * max(0, len(lines) - 1) if lines else 0
         
         cur_y = h + border_sides + max(10, int((border_bottom - total_h) / 2))
         
-        if main_title:
-            draw.text((border_sides, cur_y), main_title, fill=text_primary, font=t_font)
-            cur_y += (t_bbox[3] - t_bbox[1]) + line_gap
-            
-        if settings_text:
-            draw.text((border_sides, cur_y), settings_text, fill=text_secondary, font=s_font)
-            cur_y += (s_bbox[3] - s_bbox[1]) + line_gap
-            
-        if extra_text:
-            draw.text((border_sides, cur_y), extra_text, fill=text_secondary, font=e_font)
+        for text_val, font_val, color_val, text_h in lines:
+            draw.text((border_sides, cur_y), text_val, fill=color_val, font=font_val)
+            cur_y += text_h + line_gap
             
         if logo:
             logo_x = new_width - border_sides - logo.width
             logo_y = h + border_sides + max(10, int((border_bottom - logo.height) / 2))
             framed_img.paste(logo, (logo_x, logo_y), mask=logo)
 
-    # 커스텀 텍스트 렌더링
-    if has_custom and c_text:
-        raw_color = custom_opts.get("color")
-        if raw_color:
-            try:
-                c_rgb = tuple(int(raw_color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
-            except Exception:
-                c_rgb = text_primary
-        else:
-            c_rgb = (255, 255, 255) if "사진 내부" in c_pos else text_primary
-            
+    # 커스텀 텍스트 (위 레이아웃에서 이미 포함되지 않은 독립 위치들)
+    already_drawn = (has_custom and (
+        (c_pos == "하단 프레임 - 좌측 (메타데이터 하단)") or
+        (c_pos == "하단 프레임 - 중앙" and layout == "중앙 정렬 (Minimal)")
+    ))
+    
+    if has_custom and c_text and not already_drawn:
         pad_inside = int(w * 0.025)
         
         if c_pos == "하단 프레임 - 우측 (브랜드 로고 자리)":
@@ -356,9 +380,6 @@ def add_exif_frame(image, options):
         elif c_pos == "하단 프레임 - 중앙":
             cx = int((new_width - cw) / 2)
             cy = h + border_sides + max(10, int((border_bottom - ch) / 2))
-        elif c_pos == "하단 프레임 - 좌측 (메타데이터 하단)":
-            cx = border_sides
-            cy = h + border_sides + border_bottom - ch - int(12 * base_scale)
         elif c_pos == "사진 내부 - 우측 하단 (워터마크)":
             cx = border_sides + w - pad_inside - cw
             cy = border_sides + h - pad_inside - ch

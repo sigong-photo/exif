@@ -913,20 +913,35 @@
         let logoRightSpace = logoW ? (logoW + Math.round(30 * baseScale)) : 0;
 
         // Draw Layouts
+        const hasLeftCustom = hasCustom && cPos === 'bottom_left';
+        const hasCenterCustom = hasCustom && cPos === 'bottom_center' && layout === 'minimal';
+
         if (layout === 'modern') {
             // 좌우 분할
             const rightW = Math.max(Math.round(usableWidth * 0.35), Math.round(320 * baseScale));
             const leftW = usableWidth - rightW - logoRightSpace - customRightSpace - Math.round(20 * baseScale);
 
-            const centerY = h + borderSides + (borderBottom / 2);
+            const gap = Math.round(10 * baseScale);
+            let contentH = titleFontSize;
+            if (hasLeftCustom) contentH += gap + cFontSize;
+
+            const startY = h + borderSides + Math.max(10, Math.round((borderBottom - contentH) / 2)) + Math.round(titleFontSize / 2);
 
             // Left: Camera & Lens
             ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
             ctx.fillStyle = textPrimary;
-            ctx.fillText(mainTitle, borderSides, centerY, Math.max(100, leftW));
+            ctx.fillText(mainTitle, borderSides, startY, Math.max(100, leftW));
+
+            // Left: Custom Text under metadata if bottom_left
+            if (hasLeftCustom) {
+                ctx.font = `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`;
+                ctx.fillStyle = cColor;
+                ctx.fillText(cText, borderSides, startY + Math.round((titleFontSize + cFontSize) / 2) + gap, Math.max(100, leftW));
+            }
 
             // Right: Settings
             if (settingsText) {
+                const centerY = h + borderSides + (borderBottom / 2);
                 ctx.font = `${titleFontSize}px Pretendard, Outfit, sans-serif`;
                 ctx.fillStyle = textPrimary;
                 const settW = ctx.measureText(settingsText).width;
@@ -942,22 +957,30 @@
             }
         } else if (layout === 'minimal') {
             // 중앙 정렬
-            const centerY = h + borderSides + (borderBottom / 2);
+            const lineGap = Math.round(12 * baseScale);
+            const lines = [];
+            if (mainTitle) {
+                lines.push({ text: mainTitle, font: `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`, color: textPrimary, h: titleFontSize });
+            }
+            if (settingsText) {
+                lines.push({ text: settingsText, font: `${subFontSize}px Pretendard, Outfit, sans-serif`, color: textSecondary, h: subFontSize });
+            }
+            if (hasCenterCustom) {
+                lines.push({ text: cText, font: `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`, color: cColor, h: cFontSize });
+            }
+
+            const totalH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
+            let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2)) + Math.round((lines[0]?.h || 0) / 2);
 
             ctx.textAlign = 'center';
-            if (settingsText) {
-                ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
-                ctx.fillStyle = textPrimary;
-                ctx.fillText(mainTitle, newW / 2, centerY - Math.round(14 * baseScale));
-
-                ctx.font = `${subFontSize}px Pretendard, Outfit, sans-serif`;
-                ctx.fillStyle = textSecondary;
-                ctx.fillText(settingsText, newW / 2, centerY + Math.round(14 * baseScale));
-            } else {
-                ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
-                ctx.fillStyle = textPrimary;
-                ctx.fillText(mainTitle, newW / 2, centerY);
-            }
+            lines.forEach((line, idx) => {
+                ctx.font = line.font;
+                ctx.fillStyle = line.color;
+                ctx.fillText(line.text, newW / 2, currY);
+                if (idx < lines.length - 1) {
+                    currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
+                }
+            });
             ctx.textAlign = 'left';
 
             // Logo (Right)
@@ -968,17 +991,29 @@
             }
         } else {
             // 2단/3단 표준
-            const centerY = h + borderSides + (borderBottom / 2);
-
-            ctx.font = `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`;
-            ctx.fillStyle = textPrimary;
-            ctx.fillText(mainTitle, borderSides, centerY - Math.round(14 * baseScale), usableWidth - logoRightSpace - customRightSpace);
-
-            if (settingsText) {
-                ctx.font = `${subFontSize}px Pretendard, Outfit, sans-serif`;
-                ctx.fillStyle = textSecondary;
-                ctx.fillText(settingsText, borderSides, centerY + Math.round(16 * baseScale), usableWidth - logoRightSpace - customRightSpace);
+            const lineGap = Math.round(12 * baseScale);
+            const lines = [];
+            if (mainTitle) {
+                lines.push({ text: mainTitle, font: `bold ${titleFontSize}px Pretendard, Outfit, sans-serif`, color: textPrimary, h: titleFontSize });
             }
+            if (settingsText) {
+                lines.push({ text: settingsText, font: `${subFontSize}px Pretendard, Outfit, sans-serif`, color: textSecondary, h: subFontSize });
+            }
+            if (hasLeftCustom) {
+                lines.push({ text: cText, font: `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`, color: cColor, h: cFontSize });
+            }
+
+            const totalH = lines.reduce((acc, l) => acc + l.h, 0) + lineGap * Math.max(0, lines.length - 1);
+            let currY = h + borderSides + Math.max(10, Math.round((borderBottom - totalH) / 2)) + Math.round((lines[0]?.h || 0) / 2);
+
+            lines.forEach((line, idx) => {
+                ctx.font = line.font;
+                ctx.fillStyle = line.color;
+                ctx.fillText(line.text, borderSides, currY, usableWidth - logoRightSpace - customRightSpace);
+                if (idx < lines.length - 1) {
+                    currY += Math.round((line.h + lines[idx + 1].h) / 2) + lineGap;
+                }
+            });
 
             if (loadedLogoImg) {
                 const lx = newW - borderSides - logoW;
@@ -987,8 +1022,9 @@
             }
         }
 
-        // Draw Custom Text / Watermark
-        if (hasCustom && cText) {
+        // Draw Custom Text / Watermark (positions not already handled inside layout)
+        const alreadyDrawn = hasCustom && (cPos === 'bottom_left' || (cPos === 'bottom_center' && layout === 'minimal'));
+        if (hasCustom && cText && !alreadyDrawn) {
             ctx.font = `${cBold ? 'bold ' : ''}${cFontSize}px Pretendard, Outfit, sans-serif`;
             ctx.fillStyle = cColor;
 
@@ -1002,9 +1038,6 @@
             } else if (cPos === 'bottom_center') {
                 cx = (newW - cTextW) / 2;
                 cy = h + borderSides + (borderBottom / 2);
-            } else if (cPos === 'bottom_left') {
-                cx = borderSides;
-                cy = h + borderSides + borderBottom - Math.round(18 * baseScale);
             } else if (cPos === 'inside_br') {
                 cx = borderSides + w - padInside - cTextW;
                 cy = borderSides + h - padInside - Math.round(cFontSize / 2);
