@@ -1715,6 +1715,123 @@
         }
     });
 
+    // Helper to sanitize EXIF strings (strips null bytes and control characters)
+    function cleanStr(val) {
+        if (val === null || val === undefined) return '';
+        return String(val).replace(/[\u0000-\u001F\u007F]/g, '').trim();
+    }
+
+    // ── 스마트폰 (갤럭시 / 아이폰) 모델 매핑 ──────────────────────────────
+    const GALAXY_MODELS = {
+        'SM-S928': 'Galaxy S24 Ultra',
+        'SM-S926': 'Galaxy S24+',
+        'SM-S921': 'Galaxy S24',
+        'SM-S918': 'Galaxy S23 Ultra',
+        'SM-S916': 'Galaxy S23+',
+        'SM-S911': 'Galaxy S23',
+        'SM-S711': 'Galaxy S23 FE',
+        'SM-S908': 'Galaxy S22 Ultra',
+        'SM-S906': 'Galaxy S22+',
+        'SM-S901': 'Galaxy S22',
+        'SM-G998': 'Galaxy S21 Ultra',
+        'SM-G996': 'Galaxy S21+',
+        'SM-G991': 'Galaxy S21',
+        'SM-G990': 'Galaxy S21 FE',
+        'SM-G988': 'Galaxy S20 Ultra',
+        'SM-G986': 'Galaxy S20+',
+        'SM-G981': 'Galaxy S20',
+        'SM-G781': 'Galaxy S20 FE',
+        'SM-G780': 'Galaxy S20 FE',
+        'SM-N986': 'Galaxy Note 20 Ultra',
+        'SM-N981': 'Galaxy Note 20',
+        'SM-N980': 'Galaxy Note 20',
+        'SM-N976': 'Galaxy Note 10+ 5G',
+        'SM-N975': 'Galaxy Note 10+',
+        'SM-N971': 'Galaxy Note 10 5G',
+        'SM-N970': 'Galaxy Note 10',
+        'SM-G977': 'Galaxy S10 5G',
+        'SM-G975': 'Galaxy S10+',
+        'SM-G973': 'Galaxy S10',
+        'SM-G970': 'Galaxy S10e',
+        'SM-F956': 'Galaxy Z Fold 6',
+        'SM-F946': 'Galaxy Z Fold 5',
+        'SM-F936': 'Galaxy Z Fold 4',
+        'SM-F926': 'Galaxy Z Fold 3',
+        'SM-F916': 'Galaxy Z Fold 2',
+        'SM-F907': 'Galaxy Fold 5G',
+        'SM-F900': 'Galaxy Fold',
+        'SM-F741': 'Galaxy Z Flip 6',
+        'SM-F731': 'Galaxy Z Flip 5',
+        'SM-F721': 'Galaxy Z Flip 4',
+        'SM-F711': 'Galaxy Z Flip 3',
+        'SM-F707': 'Galaxy Z Flip 5G',
+        'SM-F700': 'Galaxy Z Flip',
+        'SM-A556': 'Galaxy A55 5G',
+        'SM-A546': 'Galaxy A54 5G',
+        'SM-A536': 'Galaxy A53 5G',
+        'SM-A528': 'Galaxy A52s 5G',
+        'SM-A526': 'Galaxy A52 5G',
+        'SM-A525': 'Galaxy A52',
+        'SM-A356': 'Galaxy A35 5G',
+        'SM-A346': 'Galaxy A34 5G',
+        'SM-A336': 'Galaxy A33 5G',
+        'SM-A256': 'Galaxy A25 5G',
+        'SM-A245': 'Galaxy A24',
+        'SM-A156': 'Galaxy A15 5G',
+        'SM-A155': 'Galaxy A15',
+    };
+
+    function resolveSmartphoneCamera(make, model) {
+        const m = cleanStr(make);
+        const md = cleanStr(model);
+        const mLower = m.toLowerCase();
+        const mdUpper = md.toUpperCase();
+        const mdLower = md.toLowerCase();
+
+        // Apple iPhone
+        if (mLower.includes('apple')) {
+            if (md) {
+                if (mdLower.includes('iphone') || mdLower.includes('ipad')) {
+                    return md;
+                }
+                return `Apple ${md}`;
+            }
+            return 'Apple iPhone';
+        }
+        if (mdLower.includes('iphone')) {
+            return md;
+        }
+
+        // Samsung Galaxy
+        if (mLower.includes('samsung') || mdLower.includes('galaxy') || mdUpper.startsWith('SM-')) {
+            for (const [prefix, name] of Object.entries(GALAXY_MODELS)) {
+                if (mdUpper.includes(prefix)) {
+                    return name;
+                }
+            }
+            if (mdUpper.startsWith('SM-')) {
+                return `Galaxy (${md})`;
+            }
+            if (mdLower.includes('galaxy')) {
+                return md;
+            }
+            if (md) {
+                return `Galaxy ${md}`;
+            }
+            return 'Samsung Galaxy';
+        }
+
+        return '';
+    }
+
+    function cleanSmartphoneLens(lens) {
+        if (!lens) return '';
+        let s = cleanStr(lens);
+        s = s.replace(/iphone[\w\s]*(back|front)?\s*(triple|dual|single)?\s*camera\s*/i, '').trim();
+        s = s.replace(/(samsung|galaxy)[\w\s]*(rear|back|front|wide|telephoto|ultra\s*wide)?\s*camera\s*/i, '').trim();
+        return s;
+    }
+
     // EXIF Data Extraction Helper
     function extractExifData(exifData, file) {
         let camMake = exifData.Make || '';
