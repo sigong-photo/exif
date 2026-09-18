@@ -558,9 +558,50 @@
             margin-top: 0;
         }
 
+        .batch-download-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .batch-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 0.8rem;
+            margin: 4px 0 2px;
+        }
+
+        .batch-divider::before,
+        .batch-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .batch-divider span {
+            padding: 0 10px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .batch-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        @media (max-width: 540px) {
+            .batch-buttons-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .btn-secondary {
             width: 100%;
-            padding: 13px 20px;
+            padding: 12px 14px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--card-border);
             border-radius: 10px;
@@ -1259,9 +1300,20 @@
                     <button class="btn-primary" id="downloadBtn" disabled>
                         📥 초고화질 이미지 다운로드 (현재 사진)
                     </button>
-                    <button type="button" class="btn-secondary" id="downloadAllBtn" style="display: none;">
-                        📦 전체 사진 일괄 다운로드 (ZIP)
-                    </button>
+
+                    <div class="batch-download-wrapper" id="batchDownloadWrapper" style="display: none;">
+                        <div class="batch-divider">
+                            <span id="batchDividerText">전체 사진 일괄 다운로드</span>
+                        </div>
+                        <div class="batch-buttons-grid">
+                            <button type="button" class="btn-secondary" id="downloadAllDirectBtn">
+                                📥 개별 파일 받기 (무압축)
+                            </button>
+                            <button type="button" class="btn-secondary" id="downloadAllBtn">
+                                📦 ZIP으로 받기 (압축)
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="batch-progress-container" id="batchProgressContainer" style="display: none;">
                     <div class="batch-progress-header">
@@ -1302,6 +1354,28 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.6.2</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>📥 전체 사진 일괄 다운로드 옵션 추가 (무압축 개별 파일 & ZIP 압축)</h4>
+                <ul>
+                    <li><strong>개별 파일 받기 (무압축)</strong>:
+                        <ul>
+                            <li>PC 브라우저: 압축 없이 고화질 프레임 사진들을 350ms 딜레이 큐로 안전하게 순차 자동 다운로드</li>
+                            <li>모바일 (iOS Safari/Android): Web Share API 다중 파일 공유를 통해 공유 창에서 [N개 이미지 저장]으로 사진첩에 즉시 일괄 저장</li>
+                        </ul>
+                    </li>
+                    <li><strong>ZIP으로 받기 (압축)</strong>:
+                        <ul>
+                            <li>JSZip 엔진 기반 브라우저 100% 클라이언트 사이드 고속 ZIP 압축 다운로드 지원 유지</li>
+                        </ul>
+                    </li>
+                    <li><strong>안전 가드 & 실시간 진행률 연동</strong>:
+                        <ul>
+                            <li>두 다운로드 모드 모두 실시간 프로그레스 바(% 및 파일명) 표시 및 중복 실행 방지 상호 비활성화 처리</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.6.0</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>📦 사진 여러 장 동시 추가 & 썸네일 스트립 & 일괄 ZIP 다운로드</h4>
@@ -1574,6 +1648,9 @@
     const ctx = previewCanvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadAllBtn = document.getElementById('downloadAllBtn');
+    const downloadAllDirectBtn = document.getElementById('downloadAllDirectBtn');
+    const batchDownloadWrapper = document.getElementById('batchDownloadWrapper');
+    const batchDividerText = document.getElementById('batchDividerText');
     const placeholder = document.getElementById('placeholder');
     const spinner = document.getElementById('loadingSpinner');
     const imgInfoBadge = document.getElementById('imgInfoBadge');
@@ -2313,12 +2390,22 @@
     }
 
     function updateBatchUI() {
-        if (!downloadAllBtn) return;
-        if (photoList.length > 1) {
-            downloadAllBtn.style.display = 'block';
-            downloadAllBtn.textContent = `📦 전체 사진 일괄 다운로드 (${photoList.length}장 ZIP)`;
-        } else {
-            downloadAllBtn.style.display = 'none';
+        const total = photoList.length;
+        if (batchDownloadWrapper) {
+            if (total > 1) {
+                batchDownloadWrapper.style.display = 'flex';
+                if (batchDividerText) {
+                    batchDividerText.textContent = `전체 ${total}장 일괄 다운로드`;
+                }
+                if (downloadAllDirectBtn) {
+                    downloadAllDirectBtn.textContent = `📥 개별 파일 받기 (${total}장 무압축)`;
+                }
+                if (downloadAllBtn) {
+                    downloadAllBtn.textContent = `📦 ZIP으로 받기 (${total}장 압축)`;
+                }
+            } else {
+                batchDownloadWrapper.style.display = 'none';
+            }
         }
     }
 
@@ -2901,6 +2988,8 @@
         const origBtnText = '📥 초고화질 이미지 다운로드 (Original Quality)';
         downloadBtn.textContent = '⏳ 이미지 렌더링 중...';
         downloadBtn.disabled = true;
+        if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = true;
+        if (downloadAllBtn) downloadAllBtn.disabled = true;
 
         const exportCanvas = document.createElement('canvas');
 
@@ -2957,6 +3046,8 @@
                     setTimeout(() => {
                         downloadBtn.textContent = origBtnText;
                         downloadBtn.disabled = false;
+                        if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = false;
+                        if (downloadAllBtn) downloadAllBtn.disabled = false;
                     }, 2500);
                     return;
                 }
@@ -2965,29 +3056,22 @@
                     // 사용자가 시스템 공유 창을 닫은 경우 (정상 취소)
                     downloadBtn.textContent = origBtnText;
                     downloadBtn.disabled = false;
+                    if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = false;
+                    if (downloadAllBtn) downloadAllBtn.disabled = false;
                     return;
                 }
                 console.warn('Web Share failed, fallback to standard download link:', shareErr);
             }
 
             // PC 브라우저 또는 Share 미지원 환경: 표준 다운로드 링크 트리거
-            const blobUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = downloadName;
-            link.href = blobUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // 모바일 Safari / Chrome이 다운로드를 완전히 스트리밍할 수 있도록 60초 후 해제
-            setTimeout(() => {
-                URL.revokeObjectURL(blobUrl);
-            }, 60000);
+            triggerBlobDownload(blob, downloadName);
 
             downloadBtn.textContent = '✅ 다운로드 완료!';
             setTimeout(() => {
                 downloadBtn.textContent = origBtnText;
                 downloadBtn.disabled = false;
+                if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = false;
+                if (downloadAllBtn) downloadAllBtn.disabled = false;
             }, 2000);
 
         } catch (err) {
@@ -2995,12 +3079,26 @@
             alert(err.message || '이미지를 저장하는 중 오류가 발생했습니다.');
             downloadBtn.textContent = origBtnText;
             downloadBtn.disabled = false;
+            if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = false;
+            if (downloadAllBtn) downloadAllBtn.disabled = false;
         } finally {
             // 메모리 해제
             exportCanvas.width = 1;
             exportCanvas.height = 1;
         }
     });
+
+    // Helper to trigger direct single download
+    function triggerBlobDownload(blob, filename) {
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = blobUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    }
 
     // Download All Button Action (전체 사진 일괄 ZIP 다운로드 - JSZip)
     if (downloadAllBtn) {
@@ -3015,6 +3113,7 @@
             const total = photoList.length;
             const origBtnText = downloadAllBtn.textContent;
             downloadAllBtn.disabled = true;
+            if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = true;
             downloadBtn.disabled = true;
 
             if (batchProgressContainer) {
@@ -3084,15 +3183,7 @@
                 });
 
                 // Trigger ZIP download
-                const blobUrl = URL.createObjectURL(zipBlob);
-                const link = document.createElement('a');
-                link.download = zipFilename;
-                link.href = blobUrl;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+                triggerBlobDownload(zipBlob, zipFilename);
 
                 if (batchProgressContainer) {
                     batchProgressTitle.textContent = `✅ 총 ${total}장의 프레임 사진이 ZIP으로 저장되었습니다!`;
@@ -3108,6 +3199,136 @@
                 if (batchProgressContainer) batchProgressContainer.style.display = 'none';
             } finally {
                 downloadAllBtn.disabled = false;
+                if (downloadAllDirectBtn) downloadAllDirectBtn.disabled = false;
+                downloadBtn.disabled = false;
+                updateBatchUI();
+            }
+        });
+    }
+
+    // Download All Direct Action (전체 사진 무압축 개별 파일 일괄 다운로드)
+    if (downloadAllDirectBtn) {
+        downloadAllDirectBtn.addEventListener('click', async () => {
+            if (photoList.length === 0) return;
+
+            saveActivePhotoState();
+            const total = photoList.length;
+            const origBtnText = downloadAllDirectBtn.textContent;
+            downloadAllDirectBtn.disabled = true;
+            if (downloadAllBtn) downloadAllBtn.disabled = true;
+            downloadBtn.disabled = true;
+
+            if (batchProgressContainer) {
+                batchProgressContainer.style.display = 'block';
+                batchProgressFill.style.width = '0%';
+                batchProgressPercent.textContent = '0%';
+                batchProgressTitle.textContent = `전체 ${total}장 개별 렌더링 준비 중...`;
+            }
+
+            const usedNames = new Map();
+            const renderedFiles = [];
+
+            try {
+                // 1단계: 순차 렌더링 (모바일 메모리 세이프)
+                for (let i = 0; i < total; i++) {
+                    const p = photoList[i];
+                    const currentIdx = i + 1;
+                    const percent = Math.round(((currentIdx - 1) / total) * 100);
+
+                    if (batchProgressContainer) {
+                        batchProgressFill.style.width = `${percent}%`;
+                        batchProgressPercent.textContent = `${percent}%`;
+                        batchProgressTitle.textContent = `렌더링 중 (${currentIdx}/${total}): ${p.name}`;
+                    }
+
+                    const blob = await renderPhotoToBlob(p, 0.98);
+                    if (!blob) {
+                        console.warn('Skipping photo due to render failure:', p.name);
+                        continue;
+                    }
+
+                    let baseName = p.name ? cleanStr(p.name).replace(/\.[^.]+$/, '') : `photo_${currentIdx}`;
+                    if (!baseName) baseName = `photo_${currentIdx}`;
+
+                    let count = usedNames.get(baseName) || 0;
+                    usedNames.set(baseName, count + 1);
+                    let finalFileName = count > 0 ? `${baseName}_${count}.jpg` : `${baseName}.jpg`;
+
+                    renderedFiles.push({ blob, name: finalFileName });
+
+                    await new Promise(r => setTimeout(r, 20));
+                }
+
+                if (renderedFiles.length === 0) {
+                    throw new Error('렌더링된 사진이 없습니다.');
+                }
+
+                // 2단계: 모바일 Web Share 다중 파일 저장 시도
+                let mobileShared = false;
+                if (isMobileDevice() && navigator.canShare) {
+                    try {
+                        const fileObjects = renderedFiles.map(rf => new File([rf.blob], rf.name, { type: 'image/jpeg' }));
+                        if (navigator.canShare({ files: fileObjects })) {
+                            if (batchProgressContainer) {
+                                batchProgressTitle.textContent = `공유 창에서 [이미지 저장]을 선택해 주세요...`;
+                                batchProgressPercent.textContent = '100%';
+                                batchProgressFill.style.width = '100%';
+                            }
+                            await navigator.share({
+                                files: fileObjects,
+                                title: `Sigong Frame (${renderedFiles.length}장)`
+                            });
+                            mobileShared = true;
+                            if (batchProgressContainer) {
+                                batchProgressTitle.textContent = `✅ 총 ${renderedFiles.length}장의 사진이 사진첩에 저장/공유되었습니다!`;
+                            }
+                        }
+                    } catch (shareErr) {
+                        if (shareErr.name === 'AbortError') {
+                            return;
+                        }
+                        console.warn('Web share failed, fallback to sequential downloads:', shareErr);
+                    }
+                }
+
+                // 3단계: 순차 개별 다운로드 (PC 브라우저 또는 Share 미지원/취소 시)
+                if (!mobileShared) {
+                    for (let i = 0; i < renderedFiles.length; i++) {
+                        const rf = renderedFiles[i];
+                        const currentIdx = i + 1;
+                        const percent = Math.round((currentIdx / renderedFiles.length) * 100);
+
+                        if (batchProgressContainer) {
+                            batchProgressFill.style.width = `${percent}%`;
+                            batchProgressPercent.textContent = `${percent}%`;
+                            batchProgressTitle.textContent = `개별 다운로드 중 (${currentIdx}/${renderedFiles.length}): ${rf.name}`;
+                        }
+
+                        triggerBlobDownload(rf.blob, rf.name);
+
+                        if (i < renderedFiles.length - 1) {
+                            await new Promise(r => setTimeout(r, 350));
+                        }
+                    }
+
+                    if (batchProgressContainer) {
+                        batchProgressFill.style.width = '100%';
+                        batchProgressPercent.textContent = '100%';
+                        batchProgressTitle.textContent = `✅ 총 ${renderedFiles.length}장의 무압축 사진이 개별 다운로드되었습니다!`;
+                    }
+                }
+
+                setTimeout(() => {
+                    if (batchProgressContainer) batchProgressContainer.style.display = 'none';
+                }, 4000);
+
+            } catch (err) {
+                console.error('Batch direct download error:', err);
+                alert('일괄 다운로드 중 오류가 발생했습니다: ' + (err.message || err));
+                if (batchProgressContainer) batchProgressContainer.style.display = 'none';
+            } finally {
+                downloadAllDirectBtn.disabled = false;
+                if (downloadAllBtn) downloadAllBtn.disabled = false;
                 downloadBtn.disabled = false;
                 updateBatchUI();
             }
