@@ -519,8 +519,8 @@ if uploaded_file:
             logo_presets = {
                 "선택 안 함": None,
                 # 소니
-                "SONY α (소니 알파 오렌지 - 시그니처)": "logos/sony_alpha_orange.png",
                 "SONY α (소니 알파 블랙)": "logos/sony_alpha_black.png",
+                "SONY α (소니 알파 오렌지 - 시그니처)": "logos/sony_alpha_orange.png",
                 "SONY α (소니 알파 화이트 - 다크테마용)": "logos/sony_alpha_white.png",
                 "SONY (소니 워드마크 블랙)": "logos/sony_black.png",
                 "SONY (소니 워드마크 화이트 - 다크테마용)": "logos/sony_white.png",
@@ -583,10 +583,10 @@ if uploaded_file:
                 elif any(k in lens_lower for k in ["fuji", "fujinon"]):
                     default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
                 elif any(k in lens_lower for k in ["sony", "fe ", "gm", "g master", "sel"]):
-                    default_idx = preset_names.index("SONY α (소니 알파 오렌지 - 시그니처)")
+                    default_idx = preset_names.index("SONY α (소니 알파 블랙)")
             else: # 📷 카메라 바디 제조사
                 if any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
-                    default_idx = preset_names.index("SONY α (소니 알파 오렌지 - 시그니처)")
+                    default_idx = preset_names.index("SONY α (소니 알파 블랙)")
                 elif any(k in cam_lower for k in ["leica", "m10", "m11", "sl2", "q2", "q3"]):
                     default_idx = preset_names.index("LEICA (라이카 레드 닷 - 시그니처)")
                 elif any(k in cam_lower for k in ["hasselblad", "x1d", "x2d", "907x"]):

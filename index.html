@@ -627,8 +627,8 @@
                     <select id="logoSelect">
                         <option value="">(로고 없음)</option>
                         <optgroup label="소니 (SONY)">
-                            <option value="logos/sony_alpha_orange.png">SONY α (소니 알파 오렌지 시그니처)</option>
                             <option value="logos/sony_alpha_black.png">SONY α (소니 알파 블랙)</option>
+                            <option value="logos/sony_alpha_orange.png">SONY α (소니 알파 오렌지 시그니처)</option>
                             <option value="logos/sony_alpha_white.png">SONY α (소니 알파 화이트)</option>
                             <option value="logos/sony_black.png">SONY (소니 워드마크 블랙)</option>
                             <option value="logos/sony_white.png">SONY (소니 워드마크 화이트)</option>
@@ -836,6 +836,7 @@
                 <h4>🏷️ 브랜드 로고 추천 기준 선택 (카메라 바디 vs 렌즈 제조사)</h4>
                 <ul>
                     <li>카메라 바디 제조사(소니, 라이카, 핫셀블라드, 니콘, 캐논 등) 또는 렌즈 제조사(시그마, 탐론, 빌트록스 등)를 기준으로 로고를 원클릭 선택</li>
+                    <li>소니(SONY) 기종 기본 로고를 <strong>SONY α (소니 알파 블랙)</strong>으로 적용</li>
                     <li>추천 기준 변경 시 프리셋 및 캔버스 실시간 자동 반영</li>
                 </ul>
             </div>
@@ -1107,12 +1108,12 @@
             } else if (l.includes('fuji') || l.includes('fujinon')) {
                 chosen = 'logos/fujifilm_color.png';
             } else if (l.includes('sony') || l.includes('fe ') || l.includes('gm') || l.includes('g master') || l.includes('sel')) {
-                chosen = 'logos/sony_alpha_orange.png';
+                chosen = 'logos/sony_alpha_black.png';
             }
         } else {
             // body
             if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
-                chosen = 'logos/sony_alpha_orange.png';
+                chosen = 'logos/sony_alpha_black.png';
             } else if (c.includes('leica') || c.includes('m10') || c.includes('m11') || c.includes('sl2') || c.includes('q2') || c.includes('q3')) {
                 chosen = 'logos/leica_red.png';
             } else if (c.includes('hasselblad') || c.includes('x1d') || c.includes('x2d') || c.includes('907x')) {
