@@ -418,6 +418,205 @@
             cursor: not-allowed;
         }
 
+        /* Multi-Photo Strip & Batch UI */
+        .photo-strip-container {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .photo-strip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .photo-count-badge {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(88, 166, 255, 0.12);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(88, 166, 255, 0.25);
+        }
+
+        .photo-strip-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-strip-action {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 4px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-strip-action:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-strip-action.danger {
+            color: #f85149;
+            border-color: rgba(248, 81, 73, 0.3);
+        }
+
+        .btn-strip-action.danger:hover {
+            background: rgba(248, 81, 73, 0.15);
+            border-color: rgba(248, 81, 73, 0.5);
+        }
+
+        .photo-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 2px 8px 2px;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .photo-strip::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .photo-strip::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .photo-thumb-item {
+            position: relative;
+            flex: 0 0 68px;
+            width: 68px;
+            height: 68px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            overflow: hidden;
+            cursor: pointer;
+            background: #000;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .photo-thumb-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-thumb-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.45);
+            transform: translateY(-2px);
+        }
+
+        .photo-thumb-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            border: none;
+            opacity: 0.8;
+            transition: all 0.2s;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .photo-thumb-remove:hover {
+            background: #f85149;
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
+        .download-actions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .download-actions-grid .btn-primary {
+            margin-top: 0;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 13px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .batch-progress-container {
+            margin-top: 12px;
+            background: rgba(22, 27, 34, 0.8);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            box-sizing: border-box;
+        }
+
+        .batch-progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+
+        .batch-progress-track {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .batch-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), #a371f7);
+            transition: width 0.25s ease;
+        }
+
         /* Meta Tag Badges */
         .badge {
             display: inline-block;
@@ -746,8 +945,19 @@
                 <div class="dropzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
                     <div class="dropzone-icon">📷</div>
                     <p>사진을 드래그하거나 클릭하여 업로드</p>
-                    <span>JPG, JPEG, PNG (고해상도 원본 지원)</span>
-                    <input type="file" id="fileInput" accept="image/jpeg, image/png" style="display:none">
+                    <span>JPG, JPEG, PNG, WebP (여러 장 동시 선택 가능)</span>
+                    <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple style="display:none">
+                </div>
+
+                <div class="photo-strip-container" id="photoStripContainer" style="display: none;">
+                    <div class="photo-strip-header">
+                        <span class="photo-count-badge" id="photoCountBadge">📷 0장의 사진</span>
+                        <div class="photo-strip-actions">
+                            <button type="button" class="btn-strip-action" id="addMorePhotosBtn" onclick="document.getElementById('fileInput').click()">+ 추가</button>
+                            <button type="button" class="btn-strip-action danger" id="clearAllPhotosBtn">모두 삭제</button>
+                        </div>
+                    </div>
+                    <div class="photo-strip" id="photoStrip"></div>
                 </div>
             </div>
 
@@ -1045,9 +1255,23 @@
                     <canvas id="previewCanvas"></canvas>
                 </div>
 
-                <button class="btn-primary" id="downloadBtn" disabled>
-                    📥 초고화질 이미지 다운로드 (Original Quality)
-                </button>
+                <div class="download-actions-grid">
+                    <button class="btn-primary" id="downloadBtn" disabled>
+                        📥 초고화질 이미지 다운로드 (현재 사진)
+                    </button>
+                    <button type="button" class="btn-secondary" id="downloadAllBtn" style="display: none;">
+                        📦 전체 사진 일괄 다운로드 (ZIP)
+                    </button>
+                </div>
+                <div class="batch-progress-container" id="batchProgressContainer" style="display: none;">
+                    <div class="batch-progress-header">
+                        <span id="batchProgressTitle">전체 사진 내보내는 중...</span>
+                        <span id="batchProgressPercent">0%</span>
+                    </div>
+                    <div class="batch-progress-track">
+                        <div class="batch-progress-fill" id="batchProgressFill"></div>
+                    </div>
+                </div>
                 <p id="mobileDownloadTip" style="display:none; font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 10px; line-height: 1.4;">
                     💡 <strong>아이폰/모바일 팁</strong>: 다운로드 시 열리는 공유 창에서 <strong>[이미지 저장]</strong>을 누르면 사진첩(카메라 롤)에 바로 저장됩니다.
                 </p>
@@ -1078,6 +1302,36 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.6.0</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>📦 사진 여러 장 동시 추가 & 썸네일 스트립 & 일괄 ZIP 다운로드</h4>
+                <ul>
+                    <li><strong>다중 파일 업로드 지원</strong>:
+                        <ul>
+                            <li>파일 선택창 다중 선택(<code>multiple</code>) 및 드래그 앤 드롭으로 여러 장의 사진을 한 번에 추가</li>
+                        </ul>
+                    </li>
+                    <li><strong>사진 스트립 (Photo Strip) 썸네일 네비게이션</strong>:
+                        <ul>
+                            <li>업로드된 사진들의 썸네일 목록을 가로 스트롤 바로 직관적으로 표시</li>
+                            <li>개별 썸네일 클릭 시 즉시 해당 사진으로 전환되며, 사진별 EXIF 메타데이터 및 편집 내용 실시간 연동</li>
+                            <li>사진별 개별 삭제(<code>✕</code>) 및 전체 비우기(<code>모두 삭제</code>), 총 사진 수 카운트 배지 제공</li>
+                        </ul>
+                    </li>
+                    <li><strong>전체 사진 일괄 다운로드 (ZIP)</strong>:
+                        <ul>
+                            <li>JSZip 엔진을 활용하여 브라우저에서 서버 전송 없이 100% 클라이언트 사이드 일괄 프레임 렌더링 및 초고속 압축</li>
+                            <li>실시간 진행률(Progress Bar, % 및 현재 렌더링 파일명) 표시</li>
+                            <li>압축 파일 내 중복 파일명 자동 넘버링 처리(<code>photo.jpg</code>, <code>photo_1.jpg</code>)</li>
+                        </ul>
+                    </li>
+                    <li><strong>모바일 메모리 세이프 가드</strong>:
+                        <ul>
+                            <li>대용량 사진 다수 업로드 시 160px 경량 썸네일만 상시 보관하고, 비활성 사진의 비트맵 메모리는 자동 해제하여 모바일 Safari 크래시 방지</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.5.9</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>🎨 시공 프레임 미니멀 앱 아이콘 및 아이폰 홈 화면 지원</h4>
@@ -1303,12 +1557,15 @@
 
 <!-- Scripts -->
 <script src="js/exifr.full.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
     // App State
     let originalImage = null;
     let originalFileName = 'photo.jpg';
     let loadedLogoImg = null;
     let currentLogoUrl = '';
+    let photoList = [];
+    let activeIndex = -1;
 
     // Elements
     const fileInput = document.getElementById('fileInput');
@@ -1316,9 +1573,21 @@
     const previewCanvas = document.getElementById('previewCanvas');
     const ctx = previewCanvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
     const placeholder = document.getElementById('placeholder');
     const spinner = document.getElementById('loadingSpinner');
     const imgInfoBadge = document.getElementById('imgInfoBadge');
+
+    const photoStripContainer = document.getElementById('photoStripContainer');
+    const photoStrip = document.getElementById('photoStrip');
+    const photoCountBadge = document.getElementById('photoCountBadge');
+    const clearAllPhotosBtn = document.getElementById('clearAllPhotosBtn');
+    const addMorePhotosBtn = document.getElementById('addMorePhotosBtn');
+
+    const batchProgressContainer = document.getElementById('batchProgressContainer');
+    const batchProgressTitle = document.getElementById('batchProgressTitle');
+    const batchProgressPercent = document.getElementById('batchProgressPercent');
+    const batchProgressFill = document.getElementById('batchProgressFill');
 
     // Inputs & Toggles
     const showCamera = document.getElementById('showCamera');
@@ -1404,285 +1673,152 @@
     });
 
     document.querySelectorAll('input[name="logoTarget"]').forEach(r => {
-        r.addEventListener('change', (e) => {
-            autoSelectLogo(cameraInput.value, lensInput.value, e.target.value);
+        r.addEventListener('change', () => {
+            autoSelectLogo(cameraInput.value, lensInput.value);
         });
     });
 
-    cameraInput.addEventListener('input', () => {
-        if (getSelectedLogoTarget() === 'body') {
-            autoSelectLogo(cameraInput.value, lensInput.value, 'body');
-        }
-    });
-
-    lensInput.addEventListener('input', () => {
-        if (getSelectedLogoTarget() === 'lens') {
-            autoSelectLogo(cameraInput.value, lensInput.value, 'lens');
-        }
-    });
-
-    function setCustomColor(color) {
-        customTextColor.value = color;
-        triggerRender();
+    if (clearAllPhotosBtn) {
+        clearAllPhotosBtn.addEventListener('click', clearAllPhotos);
     }
 
-    // Drag & Drop
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFile(e.dataTransfer.files[0]);
-        }
-    });
+    // File Input & Drag and Drop Events
     fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-            handleFile(e.target.files[0]);
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            handleFiles(files);
+        }
+        fileInput.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+        });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+            const files = Array.from(dt.files);
+            handleFiles(files);
         }
     });
 
-    // Helper to sanitize EXIF strings (strips null bytes and control characters)
-    function cleanStr(val) {
-        if (val === null || val === undefined) return '';
-        return String(val).replace(/[\u0000-\u001F\u007F]/g, '').trim();
-    }
+    // EXIF Data Extraction Helper
+    function extractExifData(exifData, file) {
+        let camMake = exifData.Make || '';
+        let camModel = exifData.Model || exifData.CameraModelName || '';
 
-    // ── 스마트폰 (갤럭시 / 아이폰) 모델 매핑 ──────────────────────────────
-    const GALAXY_MODELS = {
-        'SM-S928': 'Galaxy S24 Ultra',
-        'SM-S926': 'Galaxy S24+',
-        'SM-S921': 'Galaxy S24',
-        'SM-S918': 'Galaxy S23 Ultra',
-        'SM-S916': 'Galaxy S23+',
-        'SM-S911': 'Galaxy S23',
-        'SM-S711': 'Galaxy S23 FE',
-        'SM-S908': 'Galaxy S22 Ultra',
-        'SM-S906': 'Galaxy S22+',
-        'SM-S901': 'Galaxy S22',
-        'SM-G998': 'Galaxy S21 Ultra',
-        'SM-G996': 'Galaxy S21+',
-        'SM-G991': 'Galaxy S21',
-        'SM-G990': 'Galaxy S21 FE',
-        'SM-G988': 'Galaxy S20 Ultra',
-        'SM-G986': 'Galaxy S20+',
-        'SM-G981': 'Galaxy S20',
-        'SM-G781': 'Galaxy S20 FE',
-        'SM-G780': 'Galaxy S20 FE',
-        'SM-N986': 'Galaxy Note 20 Ultra',
-        'SM-N981': 'Galaxy Note 20',
-        'SM-N980': 'Galaxy Note 20',
-        'SM-N976': 'Galaxy Note 10+ 5G',
-        'SM-N975': 'Galaxy Note 10+',
-        'SM-N971': 'Galaxy Note 10 5G',
-        'SM-N970': 'Galaxy Note 10',
-        'SM-G977': 'Galaxy S10 5G',
-        'SM-G975': 'Galaxy S10+',
-        'SM-G973': 'Galaxy S10',
-        'SM-G970': 'Galaxy S10e',
-        'SM-F956': 'Galaxy Z Fold 6',
-        'SM-F946': 'Galaxy Z Fold 5',
-        'SM-F936': 'Galaxy Z Fold 4',
-        'SM-F926': 'Galaxy Z Fold 3',
-        'SM-F916': 'Galaxy Z Fold 2',
-        'SM-F907': 'Galaxy Fold 5G',
-        'SM-F900': 'Galaxy Fold',
-        'SM-F741': 'Galaxy Z Flip 6',
-        'SM-F731': 'Galaxy Z Flip 5',
-        'SM-F721': 'Galaxy Z Flip 4',
-        'SM-F711': 'Galaxy Z Flip 3',
-        'SM-F707': 'Galaxy Z Flip 5G',
-        'SM-F700': 'Galaxy Z Flip',
-        'SM-A556': 'Galaxy A55 5G',
-        'SM-A546': 'Galaxy A54 5G',
-        'SM-A536': 'Galaxy A53 5G',
-        'SM-A528': 'Galaxy A52s 5G',
-        'SM-A526': 'Galaxy A52 5G',
-        'SM-A525': 'Galaxy A52',
-        'SM-A356': 'Galaxy A35 5G',
-        'SM-A346': 'Galaxy A34 5G',
-        'SM-A336': 'Galaxy A33 5G',
-        'SM-A256': 'Galaxy A25 5G',
-        'SM-A245': 'Galaxy A24',
-        'SM-A156': 'Galaxy A15 5G',
-        'SM-A155': 'Galaxy A15',
-    };
-
-    function resolveSmartphoneCamera(make, model) {
-        const m = cleanStr(make);
-        const md = cleanStr(model);
-        const mLower = m.toLowerCase();
-        const mdUpper = md.toUpperCase();
-        const mdLower = md.toLowerCase();
-
-        // Apple iPhone
-        if (mLower.includes('apple')) {
-            if (md) {
-                if (mdLower.includes('iphone') || mdLower.includes('ipad')) {
-                    return md;
-                }
-                return `Apple ${md}`;
-            }
-            return 'Apple iPhone';
-        }
-        if (mdLower.includes('iphone')) {
-            return md;
-        }
-
-        // Samsung Galaxy
-        if (mLower.includes('samsung') || mdLower.includes('galaxy') || mdUpper.startsWith('SM-')) {
-            for (const [prefix, name] of Object.entries(GALAXY_MODELS)) {
-                if (mdUpper.includes(prefix)) {
-                    return name;
-                }
-            }
-            if (mdUpper.startsWith('SM-')) {
-                return `Galaxy (${md})`;
-            }
-            if (mdLower.includes('galaxy')) {
-                return md;
-            }
-            if (md) {
-                return `Galaxy ${md}`;
-            }
-            return 'Samsung Galaxy';
-        }
-
-        return '';
-    }
-
-    function cleanSmartphoneLens(lens) {
-        if (!lens) return '';
-        let s = cleanStr(lens);
-        s = s.replace(/iphone[\w\s]*(back|front)?\s*(triple|dual|single)?\s*camera\s*/i, '').trim();
-        s = s.replace(/(samsung|galaxy)[\w\s]*(rear|back|front|wide|telephoto|ultra\s*wide)?\s*camera\s*/i, '').trim();
-        return s;
-    }
-
-    // File Handler
-    async function handleFile(file) {
-        originalFileName = file.name;
-        showLoading(true);
-
-        // Reset logo state initially so images without metadata don't keep previous logos
-        logoSelect.value = '';
-        loadedLogoImg = null;
-        currentLogoUrl = '';
-
-        try {
-            // 1. Parse EXIF & XMP
-            const exifData = await exifr.parse(file, { xmp: true, tiff: true, exif: true }) || {};
-            console.log('EXIF Data parsed:', exifData);
-
-            // Populate Form
-            let camMake = exifData.Make || '';
-            let camModel = exifData.Model || exifData.CameraModelName || '';
-            
-            // 스마트폰 모델명 스마트 보정
-            const smartCam = resolveSmartphoneCamera(camMake, camModel);
-            if (smartCam) {
-                cameraInput.value = cleanStr(smartCam);
-            } else if (camMake.toLowerCase().includes('phase one') || camMake.toLowerCase().includes('phaseone')) {
-                if (camModel) {
-                    if (!camModel.toLowerCase().includes('phase one')) {
-                        camModel = `Phase One ${camModel}`;
-                    } else {
-                        camModel = camModel.replace(/phase one a\/s/i, 'Phase One').trim();
-                    }
+        // 스마트폰 모델명 스마트 보정
+        let camera = '';
+        const smartCam = resolveSmartphoneCamera(camMake, camModel);
+        if (smartCam) {
+            camera = cleanStr(smartCam);
+        } else if (camMake.toLowerCase().includes('phase one') || camMake.toLowerCase().includes('phaseone')) {
+            if (camModel) {
+                if (!camModel.toLowerCase().includes('phase one')) {
+                    camModel = `Phase One ${camModel}`;
                 } else {
-                    camModel = 'Phase One';
-                }
-                cameraInput.value = cleanStr(camModel);
-            } else {
-                cameraInput.value = cleanStr(camModel || camMake || '');
-            }
-            
-            // LensModel (support standard EXIF, LensMake, LensSpecification, and Adobe XMP)
-            const lensModel = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || exifData.LensSpecification || '';
-            const lensMake = exifData.LensMake || '';
-            let fullLens = lensModel;
-            const smartLens = cleanSmartphoneLens(lensModel);
-            if (smartLens && smartLens !== lensModel) {
-                fullLens = smartLens;
-            } else if (lensMake && lensModel && !lensModel.toLowerCase().includes(lensMake.toLowerCase())) {
-                fullLens = `${lensMake} ${lensModel}`;
-            } else if (!fullLens && lensMake) {
-                fullLens = lensMake;
-            }
-            lensInput.value = cleanStr(fullLens);
-
-            // Focal Length
-            if (exifData.FocalLength) {
-                focalInput.value = `${parseFloat(exifData.FocalLength)}mm`;
-            } else {
-                focalInput.value = '';
-            }
-
-            // F-Number
-            if (exifData.FNumber) {
-                apertureInput.value = `f/${parseFloat(exifData.FNumber)}`;
-            } else {
-                apertureInput.value = '';
-            }
-
-            // Shutter Speed
-            if (exifData.ExposureTime) {
-                const exp = parseFloat(exifData.ExposureTime);
-                shutterInput.value = exp < 1 ? `1/${Math.round(1 / exp)}s` : `${exp}s`;
-            } else {
-                shutterInput.value = '';
-            }
-
-            // ISO
-            const iso = exifData.ISO || exifData.ISOSpeedRatings;
-            isoInput.value = iso ? `ISO ${iso}` : '';
-
-            // DateTime
-            const dateRaw = exifData.DateTimeOriginal || exifData.CreateDate || exifData.ModifyDate || '';
-            if (dateRaw) {
-                try {
-                    const d = new Date(dateRaw);
-                    if (!isNaN(d.getTime())) {
-                        const yyyy = d.getFullYear();
-                        const mm = String(d.getMonth() + 1).padStart(2, '0');
-                        const dd = String(d.getDate()).padStart(2, '0');
-                        const hh = String(d.getHours()).padStart(2, '0');
-                        const min = String(d.getMinutes()).padStart(2, '0');
-                        dateTimeInput.value = `${yyyy}.${mm}.${dd} ${hh}:${min}`;
-                    } else {
-                        dateTimeInput.value = cleanStr(String(dateRaw).replace(/:/g, '.').slice(0, 16));
-                    }
-                } catch (_) {
-                    dateTimeInput.value = cleanStr(String(dateRaw));
+                    camModel = camModel.replace(/phase one a\/s/i, 'Phase One').trim();
                 }
             } else {
-                dateTimeInput.value = '';
+                camModel = 'Phase One';
             }
-
-            // Unified Settings
-            updateSettingsSummary();
-
-            // Smart Logo Recommendation
-            autoSelectLogo(cameraInput.value, lensInput.value);
-
-            // 2. Load Image
-            const img = new Image();
-            img.onload = () => {
-                originalImage = img;
-                imgInfoBadge.textContent = `${img.width} × ${img.height}px`;
-                imgInfoBadge.style.display = 'inline-block';
-                showLoading(false);
-                placeholder.style.display = 'none';
-                previewCanvas.style.display = 'block';
-                downloadBtn.disabled = false;
-                triggerRender();
-            };
-            img.src = URL.createObjectURL(file);
-        } catch (err) {
-            console.error('File parsing error:', err);
-            showLoading(false);
-            alert('사진을 처리하는 도중 오류가 발생했습니다.');
+            camera = cleanStr(camModel);
+        } else {
+            camera = cleanStr(camModel || camMake || '');
         }
+
+        // LensModel
+        const lensModel = exifData.LensModel || exifData.Lens || (exifData.aux && exifData.aux.Lens) || exifData.LensSpecification || '';
+        const lensMake = exifData.LensMake || '';
+        let fullLens = lensModel;
+        const smartLens = cleanSmartphoneLens(lensModel);
+        if (smartLens && smartLens !== lensModel) {
+            fullLens = smartLens;
+        } else if (lensMake && lensModel && !lensModel.toLowerCase().includes(lensMake.toLowerCase())) {
+            fullLens = `${lensMake} ${lensModel}`;
+        } else if (!fullLens && lensMake) {
+            fullLens = lensMake;
+        }
+        const lens = cleanStr(fullLens);
+
+        // Focal Length
+        const focal = exifData.FocalLength ? `${parseFloat(exifData.FocalLength)}mm` : '';
+
+        // F-Number
+        const aperture = exifData.FNumber ? `f/${parseFloat(exifData.FNumber)}` : '';
+
+        // Shutter Speed
+        let shutter = '';
+        if (exifData.ExposureTime) {
+            const exp = parseFloat(exifData.ExposureTime);
+            shutter = exp < 1 ? `1/${Math.round(1 / exp)}s` : `${exp}s`;
+        }
+
+        // ISO
+        const isoRaw = exifData.ISO || exifData.ISOSpeedRatings;
+        const iso = isoRaw ? `ISO ${isoRaw}` : '';
+
+        // DateTime
+        let dateTime = '';
+        const dateRaw = exifData.DateTimeOriginal || exifData.CreateDate || exifData.ModifyDate || '';
+        if (dateRaw) {
+            try {
+                const d = new Date(dateRaw);
+                if (!isNaN(d.getTime())) {
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const hh = String(d.getHours()).padStart(2, '0');
+                    const min = String(d.getMinutes()).padStart(2, '0');
+                    dateTime = `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+                } else {
+                    dateTime = cleanStr(String(dateRaw).replace(/:/g, '.').slice(0, 16));
+                }
+            } catch (_) {
+                dateTime = cleanStr(String(dateRaw));
+            }
+        }
+
+        // Settings Summary
+        const parts = [];
+        if (focal) parts.push(focal);
+        if (aperture) parts.push(aperture);
+        if (shutter) parts.push(shutter);
+        if (iso) parts.push(iso);
+        const settingsFinal = parts.join('  ·  ');
+
+        return {
+            camera,
+            lens,
+            focal,
+            aperture,
+            shutter,
+            iso,
+            dateTime,
+            settingsFinal,
+            customText: '',
+            showCamera: true,
+            showLens: true,
+            showFocal: true,
+            showAperture: true,
+            showShutter: true,
+            showIso: true,
+            showDateTime: false,
+            showCustomText: false
+        };
     }
 
     function getSelectedLogoTarget() {
@@ -1690,17 +1826,13 @@
         return checked ? checked.value : 'body';
     }
 
-    function autoSelectLogo(cam, lens, target = null) {
+    // Auto-select Logo URL based on camera and lens names
+    function getAutoLogoUrl(cam, lens, target = null) {
         if (!target) target = getSelectedLogoTarget();
         const c = cam ? cam.toLowerCase().trim() : '';
         const l = lens ? lens.toLowerCase().trim() : '';
 
-        // If no metadata at all, explicitly clear logo
-        if (!c && !l) {
-            logoSelect.value = '';
-            loadLogo('');
-            return;
-        }
+        if (!c && !l) return '';
 
         let chosen = '';
         if (target === 'lens') {
@@ -1724,7 +1856,7 @@
                 chosen = 'logos/nikon_black.png';
             } else if (l.includes('canon') || l.includes('rf ') || l.includes('ef ')) {
                 chosen = 'logos/canon_red.png';
-            } else if (l.includes('fuji') || l.includes('fujinon')) {
+            } else if (l.includes('fuji') || l.includes('fujifilm')) {
                 chosen = 'logos/fujifilm_color.png';
             } else if (l.includes('gm') || l.includes('g master')) {
                 chosen = 'logos/sony_gmaster_black.png';
@@ -1736,7 +1868,6 @@
                 chosen = 'logos/lumix_black.png';
             }
 
-            // Fallback to body if lens didn't match
             if (!chosen) {
                 if (c.includes('apple') || c.includes('iphone')) {
                     chosen = 'logos/apple_black.png';
@@ -1788,7 +1919,6 @@
                 chosen = 'logos/sigma_black.png';
             }
 
-            // Fallback to lens if body didn't match
             if (!chosen) {
                 if (l.includes('phase one') || l.includes('phaseone') || l.includes('schneider') || l.includes('kreuznach') || l.includes('rodenstock') || l.includes('digaron')) {
                     chosen = 'logos/phaseone_color.png';
@@ -1817,15 +1947,23 @@
                 }
             }
         }
+        return chosen || '';
+    }
 
-        logoSelect.value = chosen || '';
-        loadLogo(logoSelect.value);
+    function autoSelectLogo(cam, lens, target = null) {
+        const chosen = getAutoLogoUrl(cam, lens, target);
+        logoSelect.value = chosen;
+        loadLogo(chosen);
     }
 
     function loadLogo(url) {
         if (!url) {
             loadedLogoImg = null;
             currentLogoUrl = '';
+            if (activeIndex >= 0 && photoList[activeIndex]) {
+                photoList[activeIndex].logoUrl = '';
+                photoList[activeIndex].loadedLogoImg = null;
+            }
             triggerRender();
             return;
         }
@@ -1833,9 +1971,308 @@
         const img = new Image();
         img.onload = () => {
             loadedLogoImg = img;
+            if (activeIndex >= 0 && photoList[activeIndex]) {
+                photoList[activeIndex].logoUrl = url;
+                photoList[activeIndex].loadedLogoImg = img;
+            }
             triggerRender();
         };
         img.src = url;
+    }
+
+    function loadLogoAsync(url) {
+        if (!url) return Promise.resolve(null);
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+            img.src = url;
+        });
+    }
+
+    function loadImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = (e) => {
+                URL.revokeObjectURL(url);
+                reject(e);
+            };
+            img.src = url;
+        });
+    }
+
+    async function createThumbnail(file, maxSize = 160) {
+        const img = await loadImageFromFile(file);
+        const canvas = document.createElement('canvas');
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+            if (w > maxSize) {
+                h = Math.round(h * (maxSize / w));
+                w = maxSize;
+            }
+        } else {
+            if (h > maxSize) {
+                w = Math.round(w * (maxSize / h));
+                h = maxSize;
+            }
+        }
+        canvas.width = Math.max(1, w);
+        canvas.height = Math.max(1, h);
+        const tCtx = canvas.getContext('2d');
+        tCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        const dimensions = { width: img.width, height: img.height };
+        canvas.width = 1;
+        canvas.height = 1;
+        return { dataUrl, width: dimensions.width, height: dimensions.height };
+    }
+
+    // Save current active input states into photoList
+    function saveActivePhotoState() {
+        if (activeIndex < 0 || activeIndex >= photoList.length) return;
+        const p = photoList[activeIndex];
+        p.exif = {
+            camera: cameraInput.value,
+            lens: lensInput.value,
+            focal: focalInput.value,
+            aperture: apertureInput.value,
+            shutter: shutterInput.value,
+            iso: isoInput.value,
+            dateTime: dateTimeInput.value,
+            settingsFinal: settingsFinalInput.value,
+            customText: customTextInput.value,
+            showCamera: showCamera.checked,
+            showLens: showLens.checked,
+            showFocal: showFocal.checked,
+            showAperture: showAperture.checked,
+            showShutter: showShutter.checked,
+            showIso: showIso.checked,
+            showDateTime: showDateTime.checked,
+            showCustomText: showCustomText.checked
+        };
+        p.logoUrl = logoSelect.value;
+        p.loadedLogoImg = loadedLogoImg;
+    }
+
+    // Switch active photo
+    async function selectPhoto(index) {
+        if (index < 0 || index >= photoList.length) return;
+        saveActivePhotoState();
+        activeIndex = index;
+        const p = photoList[index];
+
+        // Populate Form
+        cameraInput.value = p.exif.camera || '';
+        lensInput.value = p.exif.lens || '';
+        focalInput.value = p.exif.focal || '';
+        apertureInput.value = p.exif.aperture || '';
+        shutterInput.value = p.exif.shutter || '';
+        isoInput.value = p.exif.iso || '';
+        dateTimeInput.value = p.exif.dateTime || '';
+        settingsFinalInput.value = p.exif.settingsFinal || '';
+        customTextInput.value = p.exif.customText || '';
+
+        showCamera.checked = p.exif.showCamera !== false;
+        showLens.checked = p.exif.showLens !== false;
+        showFocal.checked = p.exif.showFocal !== false;
+        showAperture.checked = p.exif.showAperture !== false;
+        showShutter.checked = p.exif.showShutter !== false;
+        showIso.checked = p.exif.showIso !== false;
+        showDateTime.checked = !!p.exif.showDateTime;
+        dateTimeWrap.style.display = showDateTime.checked ? 'block' : 'none';
+        showCustomText.checked = !!p.exif.showCustomText;
+        document.getElementById('customTextPanel').style.display = showCustomText.checked ? 'block' : 'none';
+
+        // Logo
+        logoSelect.value = p.logoUrl || '';
+        if (p.loadedLogoImg) {
+            loadedLogoImg = p.loadedLogoImg;
+            currentLogoUrl = p.logoUrl;
+        } else if (p.logoUrl) {
+            loadLogo(p.logoUrl);
+        } else {
+            loadedLogoImg = null;
+            currentLogoUrl = '';
+        }
+
+        originalFileName = p.name;
+
+        // Load full image for preview if not cached
+        if (!p.loadedImage) {
+            showLoading(true);
+            try {
+                p.loadedImage = await loadImageFromFile(p.file);
+            } catch (err) {
+                console.error('Failed to load image:', p.name, err);
+            }
+            showLoading(false);
+        }
+        originalImage = p.loadedImage;
+
+        if (originalImage) {
+            imgInfoBadge.textContent = `${originalImage.width} × ${originalImage.height}px (${(p.file.size / (1024 * 1024)).toFixed(1)} MB)`;
+            imgInfoBadge.style.display = 'inline-block';
+            placeholder.style.display = 'none';
+            previewCanvas.style.display = 'block';
+            downloadBtn.disabled = false;
+        }
+
+        renderPhotoStrip();
+        triggerRender();
+    }
+
+    function removePhoto(index) {
+        if (index < 0 || index >= photoList.length) return;
+        photoList.splice(index, 1);
+        if (photoList.length === 0) {
+            clearAllPhotos();
+        } else {
+            if (activeIndex >= photoList.length) {
+                activeIndex = photoList.length - 1;
+            }
+            selectPhoto(activeIndex);
+            updateBatchUI();
+        }
+    }
+
+    function clearAllPhotos() {
+        photoList = [];
+        activeIndex = -1;
+        originalImage = null;
+        originalFileName = 'photo.jpg';
+        loadedLogoImg = null;
+        currentLogoUrl = '';
+
+        if (photoStripContainer) photoStripContainer.style.display = 'none';
+        placeholder.style.display = 'block';
+        previewCanvas.style.display = 'none';
+        downloadBtn.disabled = true;
+        imgInfoBadge.style.display = 'none';
+        ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        fileInput.value = '';
+        updateBatchUI();
+    }
+
+    function renderPhotoStrip() {
+        if (!photoStrip) return;
+        if (photoCountBadge) photoCountBadge.textContent = `📷 ${photoList.length}장의 사진`;
+        photoStrip.innerHTML = '';
+
+        photoList.forEach((photo, idx) => {
+            const item = document.createElement('div');
+            item.className = 'photo-thumb-item' + (idx === activeIndex ? ' active' : '');
+            item.title = `${photo.name} (${photo.width}×${photo.height})`;
+
+            const img = document.createElement('img');
+            img.src = photo.thumbUrl;
+            img.alt = photo.name;
+            item.appendChild(img);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'photo-thumb-remove';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = '이 사진 삭제';
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removePhoto(idx);
+            });
+            item.appendChild(removeBtn);
+
+            item.addEventListener('click', () => {
+                selectPhoto(idx);
+            });
+
+            photoStrip.appendChild(item);
+        });
+
+        const activeThumb = photoStrip.querySelector('.photo-thumb-item.active');
+        if (activeThumb) {
+            activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    }
+
+    function updateBatchUI() {
+        if (!downloadAllBtn) return;
+        if (photoList.length > 1) {
+            downloadAllBtn.style.display = 'block';
+            downloadAllBtn.textContent = `📦 전체 사진 일괄 다운로드 (${photoList.length}장 ZIP)`;
+        } else {
+            downloadAllBtn.style.display = 'none';
+        }
+    }
+
+    // Main multi-file handler
+    async function handleFiles(files) {
+        const validFiles = files.filter(f => /\.(jpe?g|png|webp)$/i.test(f.name) || f.type.startsWith('image/'));
+        if (validFiles.length === 0) {
+            alert('지원되는 이미지 파일(JPG, PNG, WebP)을 선택해 주세요.');
+            return;
+        }
+
+        showLoading(true);
+        const initialCount = photoList.length;
+
+        for (let i = 0; i < validFiles.length; i++) {
+            const file = validFiles[i];
+            try {
+                // 1. Fast thumbnail & dimensions
+                const thumb = await createThumbnail(file);
+
+                // 2. Parse EXIF & XMP
+                let exifData = {};
+                try {
+                    exifData = await exifr.parse(file, { xmp: true, tiff: true, exif: true }) || {};
+                } catch (e) {
+                    console.warn('EXIF parse warning for', file.name, e);
+                }
+
+                // Extract EXIF fields
+                const parsed = extractExifData(exifData, file);
+
+                // Auto-detect logo
+                const detectedLogo = getAutoLogoUrl(parsed.camera, parsed.lens, getSelectedLogoTarget());
+
+                const item = {
+                    id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    file: file,
+                    name: file.name,
+                    thumbUrl: thumb.dataUrl,
+                    width: thumb.width,
+                    height: thumb.height,
+                    loadedImage: null,
+                    exif: parsed,
+                    logoUrl: detectedLogo || '',
+                    loadedLogoImg: null
+                };
+
+                photoList.push(item);
+            } catch (err) {
+                console.error('Error processing file:', file.name, err);
+            }
+        }
+
+        showLoading(false);
+
+        if (photoList.length > 0) {
+            if (photoStripContainer) photoStripContainer.style.display = 'block';
+            updateBatchUI();
+
+            // Auto-select first newly added photo
+            if (activeIndex === -1 || activeIndex >= photoList.length) {
+                selectPhoto(initialCount < photoList.length ? initialCount : 0);
+            } else {
+                renderPhotoStrip();
+            }
+        }
+    }
+
+    // Backward compatibility for single file
+    function handleFile(file) {
+        handleFiles([file]);
     }
 
     function showLoading(show) {
@@ -1844,6 +2281,7 @@
 
     let renderTimeout = null;
     function triggerRender() {
+        saveActivePhotoState();
         if (!originalImage) return;
         if (renderTimeout) cancelAnimationFrame(renderTimeout);
         renderTimeout = requestAnimationFrame(() => renderCanvas(previewCanvas));
@@ -1878,13 +2316,15 @@
     }
 
     // Canvas Rendering Engine (다중 캔버스 및 동적 스케일 지원)
-    function renderCanvas(targetCanvas = previewCanvas, customScale = null) {
-        if (!originalImage) return;
+    function renderCanvas(targetCanvas = previewCanvas, customScale = null, photoData = null) {
+        const photo = photoData || (activeIndex >= 0 ? photoList[activeIndex] : null);
+        const img = (photo && photo.loadedImage) ? photo.loadedImage : originalImage;
+        if (!img) return;
 
         const canvas = targetCanvas || previewCanvas;
         const ctx = canvas.getContext('2d');
-        const origW = originalImage.width;
-        const origH = originalImage.height;
+        const origW = img.width;
+        const origH = img.height;
 
         const scale = (customScale !== null) ? customScale : getSafeScale(origW, origH, false);
         const w = Math.round(origW * scale);
@@ -1925,15 +2365,34 @@
         // 1. Draw Background & Image
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, newW, newH);
-        ctx.drawImage(originalImage, borderSides, borderSides, w, h);
+        ctx.drawImage(img, borderSides, borderSides, w, h);
 
         // 2. Base scale calculation
         const baseScale = w / 1200;
         const fontMultiplier = parseFloat(fontScale.value);
 
-        const cameraText = (showCamera && showCamera.checked) ? cleanStr(cameraInput.value) : '';
-        const lensText = (showLens && showLens.checked) ? cleanStr(lensInput.value) : '';
-        const settingsText = cleanStr(settingsFinalInput.value);
+        let cameraText = '';
+        let lensText = '';
+        let settingsText = '';
+        let hasCustom = false;
+        let cText = '';
+        let logoToDraw = null;
+
+        if (photo && photo.exif) {
+            cameraText = (photo.exif.showCamera !== false) ? cleanStr(photo.exif.camera || '') : '';
+            lensText = (photo.exif.showLens !== false) ? cleanStr(photo.exif.lens || '') : '';
+            settingsText = cleanStr(photo.exif.settingsFinal || '');
+            hasCustom = !!photo.exif.showCustomText && !!cleanStr(photo.exif.customText);
+            cText = hasCustom ? cleanStr(photo.exif.customText) : '';
+            logoToDraw = photo.loadedLogoImg || loadedLogoImg;
+        } else {
+            cameraText = (showCamera && showCamera.checked) ? cleanStr(cameraInput.value) : '';
+            lensText = (showLens && showLens.checked) ? cleanStr(lensInput.value) : '';
+            settingsText = cleanStr(settingsFinalInput.value);
+            hasCustom = showCustomText.checked && !!cleanStr(customTextInput.value);
+            cText = hasCustom ? cleanStr(customTextInput.value) : '';
+            logoToDraw = loadedLogoImg;
+        }
 
         const mainTitle = [cameraText, lensText].filter(Boolean).join('   |   ');
         const layout = layoutSelect.value;
@@ -1943,16 +2402,14 @@
         let logoW = 0;
         let logoH = 0;
         const lScale = parseFloat(logoScale.value);
-        if (loadedLogoImg) {
+        if (logoToDraw) {
             const maxLogoH = Math.min(Math.round(borderBottom * 0.75), Math.max(10, Math.round(borderBottom * 0.45 * lScale)));
-            const aspect = loadedLogoImg.width / loadedLogoImg.height;
+            const aspect = logoToDraw.width / logoToDraw.height;
             logoH = maxLogoH;
             logoW = Math.round(logoH * aspect);
         }
 
         // Custom Text setup
-        const hasCustom = showCustomText.checked && cleanStr(customTextInput.value);
-        const cText = hasCustom ? cleanStr(customTextInput.value) : '';
         const cPos = customTextPos.value;
         const cScale = parseFloat(customTextSize.value);
         const cBold = customTextBold.checked;
@@ -2009,10 +2466,10 @@
                 }
             });
 
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'modern') {
             // 2. 좌우 분할 (Modern Clean) - 충돌 방지 로직 포함
@@ -2058,10 +2515,10 @@
             }
 
             // 로고
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'shot_on') {
             // 3. Shot on 시그니처 (Shot on Signature)
@@ -2085,10 +2542,10 @@
                 ctx.fillText(subLine, borderSides, startY + Math.round((titleFontSize + subFontSize) / 2) + lineGap, availW);
             }
 
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'one_line') {
             // 4. 한 줄 미니멀 (One Line)
@@ -2106,10 +2563,10 @@
             ctx.fillStyle = textPrimary;
             ctx.fillText(fullLine, borderSides, centerY, availW);
 
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'minimal') {
             // 5. 감성 중앙 정렬 (Minimal Centered)
@@ -2139,10 +2596,10 @@
             });
             ctx.textAlign = 'left';
 
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'film') {
             // 6. 레트로 필름 (Film & Vintage)
@@ -2165,7 +2622,7 @@
             }
 
             // 우측 빈티지 오렌지 LED 날짜 스탬프
-            let dateStamp = (dateTimeInput && dateTimeInput.value) ? dateTimeInput.value.trim() : '';
+            let dateStamp = (photo && photo.exif && photo.exif.dateTime) ? photo.exif.dateTime.trim() : ((dateTimeInput && dateTimeInput.value) ? dateTimeInput.value.trim() : '');
             if (!dateStamp) {
                 const now = new Date();
                 const yy = String(now.getFullYear()).slice(2);
@@ -2182,10 +2639,10 @@
             const stampX = newW - borderSides - logoRightSpace - stampW;
             ctx.fillText(dateStamp, stampX, h + borderSides + (borderBottom / 2));
 
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'cinema') {
             // 7. 시네마스코프 (Cinema Scope 2.39:1)
@@ -2198,17 +2655,17 @@
             ctx.fillText(cinemaText, newW / 2, centerY, usableWidth - Math.round(40 * baseScale));
             ctx.textAlign = 'left';
 
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         } else if (layout === 'just_frame') {
             // 8. 프레임만 (Just Frame)
-            if (loadedLogoImg) {
+            if (logoToDraw) {
                 const lx = newW - borderSides - logoW;
                 const ly = h + borderSides + Math.round((borderBottom - logoH) / 2);
-                ctx.drawImage(loadedLogoImg, lx, ly, logoW, logoH);
+                ctx.drawImage(logoToDraw, lx, ly, logoW, logoH);
             }
         }
 
@@ -2271,9 +2728,58 @@
         });
     }
 
-    // Download Button Action (모바일 대용량 40MB+ 튕김 방지 & 멀티스테이지 안전 다운로드)
+    // Helper to render any photo item to Blob (Sequential Batch & Mobile Memory Safe)
+    async function renderPhotoToBlob(photoData, quality = 0.98) {
+        let needUnload = false;
+        if (!photoData.loadedImage) {
+            photoData.loadedImage = await loadImageFromFile(photoData.file);
+            needUnload = true;
+        }
+
+        if (photoData.logoUrl && !photoData.loadedLogoImg) {
+            photoData.loadedLogoImg = await loadLogoAsync(photoData.logoUrl);
+        }
+
+        const canvas = document.createElement('canvas');
+        try {
+            const origW = photoData.loadedImage.width;
+            const origH = photoData.loadedImage.height;
+
+            let targetScale = getSafeScale(origW, origH, true);
+            renderCanvas(canvas, targetScale, photoData);
+            let blob = await canvasToBlobAsync(canvas, quality);
+
+            // Fallback 1: 3200px
+            if (!blob || blob.size === 0) {
+                const fallbackScale2 = Math.min(targetScale, 3200 / Math.max(origW, origH));
+                renderCanvas(canvas, fallbackScale2, photoData);
+                blob = await canvasToBlobAsync(canvas, 0.95);
+            }
+
+            // Fallback 2: 2048px
+            if (!blob || blob.size === 0) {
+                const fallbackScale3 = Math.min(targetScale, 2048 / Math.max(origW, origH));
+                renderCanvas(canvas, fallbackScale3, photoData);
+                blob = await canvasToBlobAsync(canvas, 0.92);
+            }
+
+            return blob;
+        } finally {
+            canvas.width = 1;
+            canvas.height = 1;
+            // Free memory if not active photo
+            if (needUnload && photoList[activeIndex] !== photoData) {
+                photoData.loadedImage = null;
+            }
+        }
+    }
+
+    // Download Button Action (단일 사진 다운로드 - 모바일 대용량 40MB+ 튕김 방지 & 멀티스테이지 안전 다운로드)
     downloadBtn.addEventListener('click', async () => {
         if (!originalImage) return;
+
+        saveActivePhotoState();
+        const activePhoto = (activeIndex >= 0 && photoList[activeIndex]) ? photoList[activeIndex] : null;
 
         const origBtnText = '📥 초고화질 이미지 다운로드 (Original Quality)';
         downloadBtn.textContent = '⏳ 이미지 렌더링 중...';
@@ -2287,7 +2793,7 @@
 
             // 1단계: 안전 한도 내 목표 해상도로 렌더링 (모바일 최대 4096px / 데스크톱 최대 9600px 원본)
             let targetScale = getSafeScale(origW, origH, true);
-            renderCanvas(exportCanvas, targetScale);
+            renderCanvas(exportCanvas, targetScale, activePhoto);
             let blob = await canvasToBlobAsync(exportCanvas, 0.98);
 
             // 2단계: 모바일 메모리 한도 초과 시 3200px 안전 해상도로 자동 재시도
@@ -2295,7 +2801,7 @@
                 console.warn('1차 렌더링 메모리 한도 초과. 2차 안전 해상도(3200px)로 재시도합니다.');
                 downloadBtn.textContent = '⏳ 안전 모드로 내보내는 중...';
                 const fallbackScale2 = Math.min(targetScale, 3200 / Math.max(origW, origH));
-                renderCanvas(exportCanvas, fallbackScale2);
+                renderCanvas(exportCanvas, fallbackScale2, activePhoto);
                 blob = await canvasToBlobAsync(exportCanvas, 0.95);
             }
 
@@ -2303,7 +2809,7 @@
             if (!blob || blob.size === 0) {
                 console.warn('2차 렌더링 실패. 3차 기본 해상도(2048px)로 최종 복구합니다.');
                 const fallbackScale3 = Math.min(targetScale, 2048 / Math.max(origW, origH));
-                renderCanvas(exportCanvas, fallbackScale3);
+                renderCanvas(exportCanvas, fallbackScale3, activePhoto);
                 blob = await canvasToBlobAsync(exportCanvas, 0.92);
             }
 
@@ -2312,7 +2818,8 @@
             }
 
             // 파일명 처리
-            let downloadName = originalFileName ? cleanStr(originalFileName) : 'sigong_frame.jpg';
+            let baseName = (activePhoto && activePhoto.name) ? activePhoto.name : originalFileName;
+            let downloadName = baseName ? cleanStr(baseName) : 'sigong_frame.jpg';
             if (!/\.(jpe?g|png|webp)$/i.test(downloadName)) {
                 downloadName += '.jpg';
             } else {
@@ -2377,6 +2884,118 @@
             exportCanvas.height = 1;
         }
     });
+
+    // Download All Button Action (전체 사진 일괄 ZIP 다운로드 - JSZip)
+    if (downloadAllBtn) {
+        downloadAllBtn.addEventListener('click', async () => {
+            if (photoList.length === 0) return;
+            if (typeof JSZip === 'undefined') {
+                alert('JSZip 라이브러리를 로드할 수 없습니다. 인터넷 연결을 확인해 주세요.');
+                return;
+            }
+
+            saveActivePhotoState();
+            const total = photoList.length;
+            const origBtnText = downloadAllBtn.textContent;
+            downloadAllBtn.disabled = true;
+            downloadBtn.disabled = true;
+
+            if (batchProgressContainer) {
+                batchProgressContainer.style.display = 'block';
+                batchProgressFill.style.width = '0%';
+                batchProgressPercent.textContent = '0%';
+                batchProgressTitle.textContent = `전체 ${total}장 렌더링 준비 중...`;
+            }
+
+            const zip = new JSZip();
+            const usedNames = new Map();
+
+            try {
+                for (let i = 0; i < total; i++) {
+                    const p = photoList[i];
+                    const currentIdx = i + 1;
+                    const percent = Math.round(((currentIdx - 1) / total) * 100);
+
+                    if (batchProgressContainer) {
+                        batchProgressFill.style.width = `${percent}%`;
+                        batchProgressPercent.textContent = `${percent}%`;
+                        batchProgressTitle.textContent = `렌더링 중 (${currentIdx}/${total}): ${p.name}`;
+                    }
+
+                    // Render to blob
+                    const blob = await renderPhotoToBlob(p, 0.96);
+                    if (!blob) {
+                        console.warn('Skipping photo due to render failure:', p.name);
+                        continue;
+                    }
+
+                    // Format filename inside zip
+                    let baseName = p.name ? cleanStr(p.name).replace(/\.[^.]+$/, '') : `photo_${currentIdx}`;
+                    if (!baseName) baseName = `photo_${currentIdx}`;
+
+                    // Handle filename duplication
+                    let count = usedNames.get(baseName) || 0;
+                    usedNames.set(baseName, count + 1);
+                    let finalFileName = count > 0 ? `${baseName}_${count}.jpg` : `${baseName}.jpg`;
+
+                    zip.file(finalFileName, blob);
+
+                    // Yield thread so UI updates smoothly
+                    await new Promise(r => setTimeout(r, 20));
+                }
+
+                if (batchProgressContainer) {
+                    batchProgressFill.style.width = '100%';
+                    batchProgressPercent.textContent = '100%';
+                    batchProgressTitle.textContent = '압축 파일(ZIP) 생성 중...';
+                }
+
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const zipFilename = `sigong_frames_${yyyy}${mm}${dd}.zip`;
+
+                const zipBlob = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                }, (metadata) => {
+                    if (batchProgressContainer && metadata.percent) {
+                        batchProgressPercent.textContent = `${Math.round(metadata.percent)}%`;
+                    }
+                });
+
+                // Trigger ZIP download
+                const blobUrl = URL.createObjectURL(zipBlob);
+                const link = document.createElement('a');
+                link.download = zipFilename;
+                link.href = blobUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+
+                if (batchProgressContainer) {
+                    batchProgressTitle.textContent = `✅ 총 ${total}장의 프레임 사진이 ZIP으로 저장되었습니다!`;
+                }
+
+                setTimeout(() => {
+                    if (batchProgressContainer) batchProgressContainer.style.display = 'none';
+                }, 4000);
+
+            } catch (err) {
+                console.error('Batch ZIP export error:', err);
+                alert('일괄 다운로드 중 오류가 발생했습니다: ' + (err.message || err));
+                if (batchProgressContainer) batchProgressContainer.style.display = 'none';
+            } finally {
+                downloadAllBtn.disabled = false;
+                downloadBtn.disabled = false;
+                updateBatchUI();
+            }
+        });
+    }
 
     // Changelog Modal
     const openChangelogBtn = document.getElementById('openChangelogBtn');
