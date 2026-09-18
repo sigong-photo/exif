@@ -634,8 +634,8 @@ def add_exif_frame(image, options):
                 
     return framed_img
 
-st.set_page_config(layout="wide", page_title="EXIF Frame Generator")
-st.title("📸 EXIF Frame Generator")
+st.set_page_config(layout="wide", page_title="Sigong Frame")
+st.title("📸 Sigong Frame")
 st.caption("사진의 메타데이터와 공식 브랜드 로고를 합성해 감성적인 프레임을 완성하세요.")
 
 with st.expander("📋 버전별 변경 이력 (CHANGELOG)", expanded=False):

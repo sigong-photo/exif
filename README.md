@@ -1,4 +1,4 @@
-# 📸 EXIF Frame Generator
+# 📸 Sigong Frame
 
 사진의 EXIF 및 메타데이터를 기반으로 세련된 사진 프레임(보더)과 워터마크를 생성해 주는 웹 애플리케이션입니다.
 
