@@ -243,8 +243,46 @@
         .checkbox-label input[type="checkbox"] {
             accent-color: var(--primary);
             width: 16px;
-            height: 16px;
+        }
+
+        /* Segmented Control */
+        .segmented-control {
+            display: flex;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+        }
+        .segmented-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
             cursor: pointer;
+            user-select: none;
+        }
+        .segmented-item input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .segmented-item span {
+            display: block;
+            padding: 8px 12px;
+            border-radius: 7px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            transition: var(--transition);
+        }
+        .segmented-item input:checked + span {
+            background: #21262d;
+            color: var(--text-main);
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 1px solid rgba(88, 166, 255, 0.35);
         }
 
         /* Preview Side (Right) */
@@ -572,6 +610,19 @@
 
                 <div class="section-title" style="margin-top: 24px;">✨ 브랜드 로고 프리셋</div>
                 <div class="form-group">
+                    <label>로고 추천 기준</label>
+                    <div class="segmented-control" id="logoTargetGroup">
+                        <label class="segmented-item">
+                            <input type="radio" name="logoTarget" value="body" checked>
+                            <span>📷 카메라 바디</span>
+                        </label>
+                        <label class="segmented-item">
+                            <input type="radio" name="logoTarget" value="lens">
+                            <span>🔍 렌즈 제조사</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>제조사 로고 선택</label>
                     <select id="logoSelect">
                         <option value="">(로고 없음)</option>
@@ -781,6 +832,14 @@
         </div>
         <div class="modal-body">
             <div class="changelog-version">
+                <span class="changelog-badge">v1.4.3</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>🏷️ 브랜드 로고 추천 기준 선택 (카메라 바디 vs 렌즈 제조사)</h4>
+                <ul>
+                    <li>카메라 바디 제조사(소니, 라이카, 핫셀블라드, 니콘, 캐논 등) 또는 렌즈 제조사(시그마, 탐론, 빌트록스 등)를 기준으로 로고를 원클릭 선택</li>
+                    <li>추천 기준 변경 시 프리셋 및 캔버스 실시간 자동 반영</li>
+                </ul>
+            </div>
+            <div class="changelog-version">
                 <span class="changelog-badge">v1.4.2</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>💾 원본 파일명 보존 다운로드</h4>
                 <ul>
@@ -916,6 +975,12 @@
         loadLogo(logoSelect.value);
     });
 
+    document.querySelectorAll('input[name="logoTarget"]').forEach(r => {
+        r.addEventListener('change', (e) => {
+            autoSelectLogo(cameraInput.value, lensInput.value, e.target.value);
+        });
+    });
+
     function setCustomColor(color) {
         customTextColor.value = color;
         triggerRender();
@@ -1013,28 +1078,58 @@
         }
     }
 
-    function autoSelectLogo(cam, lens) {
+    function getSelectedLogoTarget() {
+        const checked = document.querySelector('input[name="logoTarget"]:checked');
+        return checked ? checked.value : 'body';
+    }
+
+    function autoSelectLogo(cam, lens, target = null) {
+        if (!target) target = getSelectedLogoTarget();
         const c = cam.toLowerCase();
         const l = lens.toLowerCase();
 
-        if (l.includes('tamron') || l.includes('di iii')) {
-            logoSelect.value = 'logos/tamron_black.png';
-        } else if (l.includes('viltrox')) {
-            logoSelect.value = 'logos/viltrox_black.png';
-        } else if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
-            logoSelect.value = 'logos/sigma_black.png';
-        } else if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
-            logoSelect.value = 'logos/sony_alpha_orange.png';
-        } else if (c.includes('leica') || l.includes('leica') || l.includes('summicron')) {
-            logoSelect.value = 'logos/leica_red.png';
-        } else if (c.includes('hasselblad') || l.includes('hasselblad')) {
-            logoSelect.value = 'logos/hasselblad_black.png';
-        } else if (c.includes('nikon') || l.includes('nikkor')) {
-            logoSelect.value = 'logos/nikon_black.png';
-        } else if (c.includes('canon') || l.includes('canon')) {
-            logoSelect.value = 'logos/canon_red.png';
-        } else if (c.includes('fuji') || l.includes('fujinon')) {
-            logoSelect.value = 'logos/fujifilm_color.png';
+        let chosen = '';
+        if (target === 'lens') {
+            if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
+                chosen = 'logos/sigma_black.png';
+            } else if (l.includes('tamron') || l.includes('di iii')) {
+                chosen = 'logos/tamron_black.png';
+            } else if (l.includes('viltrox')) {
+                chosen = 'logos/viltrox_black.png';
+            } else if (l.includes('leica') || l.includes('summicron') || l.includes('summilux') || l.includes('elmarit') || l.includes('noctilux')) {
+                chosen = 'logos/leica_red.png';
+            } else if (l.includes('hasselblad') || l.includes('xcd')) {
+                chosen = 'logos/hasselblad_black.png';
+            } else if (l.includes('nikon') || l.includes('nikkor')) {
+                chosen = 'logos/nikon_black.png';
+            } else if (l.includes('canon') || l.includes('rf ') || l.includes('ef ')) {
+                chosen = 'logos/canon_red.png';
+            } else if (l.includes('fuji') || l.includes('fujinon')) {
+                chosen = 'logos/fujifilm_color.png';
+            } else if (l.includes('sony') || l.includes('fe ') || l.includes('gm') || l.includes('g master') || l.includes('sel')) {
+                chosen = 'logos/sony_alpha_orange.png';
+            }
+        } else {
+            // body
+            if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
+                chosen = 'logos/sony_alpha_orange.png';
+            } else if (c.includes('leica') || c.includes('m10') || c.includes('m11') || c.includes('sl2') || c.includes('q2') || c.includes('q3')) {
+                chosen = 'logos/leica_red.png';
+            } else if (c.includes('hasselblad') || c.includes('x1d') || c.includes('x2d') || c.includes('907x')) {
+                chosen = 'logos/hasselblad_black.png';
+            } else if (c.includes('nikon') || c.includes('z5') || c.includes('z6') || c.includes('z7') || c.includes('z8') || c.includes('z9') || c.includes('zfc') || c.includes('d850')) {
+                chosen = 'logos/nikon_black.png';
+            } else if (c.includes('canon') || c.includes('eos') || c.includes('r5') || c.includes('r6') || c.includes('r3') || c.includes('r7')) {
+                chosen = 'logos/canon_red.png';
+            } else if (c.includes('fuji') || c.includes('fujifilm') || c.includes('x-t') || c.includes('x-pro') || c.includes('x-h') || c.includes('gfx')) {
+                chosen = 'logos/fujifilm_color.png';
+            } else if (c.includes('sigma') || c.includes('fp')) {
+                chosen = 'logos/sigma_black.png';
+            }
+        }
+
+        if (chosen) {
+            logoSelect.value = chosen;
         }
         loadLogo(logoSelect.value);
     }

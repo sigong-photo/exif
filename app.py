@@ -508,6 +508,14 @@ if uploaded_file:
                                            help="위 4개 항목을 바탕으로 자동 구성되며, 원하는 형태로 직접 수정할 수 있습니다.")
 
         with st.expander("✨ 브랜드 로고 프리셋 (카메라 및 렌즈 제조사)", expanded=True):
+            logo_target = st.radio(
+                "로고 추천 기준",
+                ["📷 카메라 바디 제조사", "🔍 렌즈 제조사"],
+                index=0,
+                horizontal=True,
+                key=f"logo_target_{file_key}"
+            )
+
             logo_presets = {
                 "선택 안 함": None,
                 # 소니
@@ -552,32 +560,47 @@ if uploaded_file:
             }
             preset_names = list(logo_presets.keys())
             
-            # 기본 프리셋 스마트 감지
+            # 기본 프리셋 스마트 감지 (바디 vs 렌즈 기준)
             lens_lower = default_lens.lower()
             cam_lower = default_camera.lower()
             
-            if any(k in lens_lower for k in ["tamron", "di iii"]):
-                default_idx = preset_names.index("TAMRON (탐론 공식 블랙)")
-            elif any(k in lens_lower for k in ["viltrox"]):
-                default_idx = preset_names.index("VILTROX (빌트록스 공식 블랙)")
-            elif any(k in lens_lower for k in ["sigma", "dg dn", "contemporary", "art", "sports"]):
-                default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
-            elif any(k in cam_lower or k in lens_lower for k in ["hasselblad", "x1d", "x2d", "907x"]):
-                default_idx = preset_names.index("HASSELBLAD (핫셀블라드 블랙)")
-            elif any(k in cam_lower or k in lens_lower for k in ["leica", "summicron", "summilux", "elmarit", "noctilux", "m10", "m11", "sl2", "q2", "q3"]):
-                default_idx = preset_names.index("LEICA (라이카 레드 닷 - 시그니처)")
-            elif any(k in cam_lower or k in lens_lower for k in ["nikon", "nikkor", "z5", "z6", "z7", "z8", "z9", "zfc", "d850"]):
-                default_idx = preset_names.index("NIKON (니콘 워드마크 블랙)")
-            elif any(k in cam_lower or k in lens_lower for k in ["canon", "eos", "rf ", "ef ", "r5", "r6", "r3"]):
-                default_idx = preset_names.index("CANON (캐논 시그니처 레드)")
-            elif any(k in cam_lower or k in lens_lower for k in ["fuji", "fujifilm", "fujinon", "x-t", "x-pro", "x-h", "x-s", "gfx"]):
-                default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
-            elif any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
-                default_idx = preset_names.index("SONY α (소니 알파 오렌지 - 시그니처)")
-            else:
-                default_idx = 0
+            default_idx = 0
+            if logo_target == "🔍 렌즈 제조사":
+                if any(k in lens_lower for k in ["tamron", "di iii"]):
+                    default_idx = preset_names.index("TAMRON (탐론 공식 블랙)")
+                elif any(k in lens_lower for k in ["viltrox"]):
+                    default_idx = preset_names.index("VILTROX (빌트록스 공식 블랙)")
+                elif any(k in lens_lower for k in ["sigma", "dg dn", "contemporary", "art", "sports"]):
+                    default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
+                elif any(k in lens_lower for k in ["leica", "summicron", "summilux", "elmarit", "noctilux"]):
+                    default_idx = preset_names.index("LEICA (라이카 레드 닷 - 시그니처)")
+                elif any(k in lens_lower for k in ["hasselblad", "xcd"]):
+                    default_idx = preset_names.index("HASSELBLAD (핫셀블라드 블랙)")
+                elif any(k in lens_lower for k in ["nikon", "nikkor"]):
+                    default_idx = preset_names.index("NIKON (니콘 워드마크 블랙)")
+                elif any(k in lens_lower for k in ["canon", "rf ", "ef "]):
+                    default_idx = preset_names.index("CANON (캐논 시그니처 레드)")
+                elif any(k in lens_lower for k in ["fuji", "fujinon"]):
+                    default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
+                elif any(k in lens_lower for k in ["sony", "fe ", "gm", "g master", "sel"]):
+                    default_idx = preset_names.index("SONY α (소니 알파 오렌지 - 시그니처)")
+            else: # 📷 카메라 바디 제조사
+                if any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
+                    default_idx = preset_names.index("SONY α (소니 알파 오렌지 - 시그니처)")
+                elif any(k in cam_lower for k in ["leica", "m10", "m11", "sl2", "q2", "q3"]):
+                    default_idx = preset_names.index("LEICA (라이카 레드 닷 - 시그니처)")
+                elif any(k in cam_lower for k in ["hasselblad", "x1d", "x2d", "907x"]):
+                    default_idx = preset_names.index("HASSELBLAD (핫셀블라드 블랙)")
+                elif any(k in cam_lower for k in ["nikon", "z5", "z6", "z7", "z8", "z9", "zfc", "d850"]):
+                    default_idx = preset_names.index("NIKON (니콘 워드마크 블랙)")
+                elif any(k in cam_lower for k in ["canon", "eos", "r5", "r6", "r3", "r7"]):
+                    default_idx = preset_names.index("CANON (캐논 시그니처 레드)")
+                elif any(k in cam_lower for k in ["fuji", "fujifilm", "x-t", "x-pro", "x-h", "x-s", "gfx"]):
+                    default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
+                elif any(k in cam_lower for k in ["sigma", "fp"]):
+                    default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
                 
-            logo_choice = st.selectbox("브랜드 로고 선택", preset_names, index=default_idx, key=f"logo_sel_{file_key}")
+            logo_choice = st.selectbox("브랜드 로고 선택", preset_names, index=default_idx, key=f"logo_sel_{file_key}_{logo_target}")
             
             chosen_logo_img = None
             if logo_choice == "직접 이미지 업로드 (PNG)":
