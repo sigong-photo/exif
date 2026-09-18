@@ -1,7 +1,10 @@
 # 📸 EXIF Frame Generator
 
-사진의 EXIF 및 메타데이터를 기반으로 세련된 사진 프레임(보더)과 워터마크를 생성해 주는 Streamlit 웹 애플리케이션입니다.
+사진의 EXIF 및 메타데이터를 기반으로 세련된 사진 프레임(보더)과 워터마크를 생성해 주는 웹 애플리케이션입니다.
 
+🔗 **웹 바로가기 (배포 주소)**: [https://sigong-photo.github.io/exif/](https://sigong-photo.github.io/exif/)
+
+![Platform](https://img.shields.io/badge/Platform-Web%20%2F%20GitHub%20Pages-blue)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-FF4B4B)
 ![Pillow](https://img.shields.io/badge/Pillow-10.0%2B-green)
