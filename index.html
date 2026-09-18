@@ -1047,6 +1047,9 @@
                 <button class="btn-primary" id="downloadBtn" disabled>
                     📥 초고화질 이미지 다운로드 (Original Quality)
                 </button>
+                <p id="mobileDownloadTip" style="display:none; font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 10px; line-height: 1.4;">
+                    💡 <strong>아이폰/모바일 팁</strong>: 다운로드 시 열리는 공유 창에서 <strong>[이미지 저장]</strong>을 누르면 사진첩(카메라 롤)에 바로 저장됩니다.
+                </p>
             </div>
         </div>
     </div>
@@ -1074,6 +1077,23 @@
             <button type="button" class="modal-close" id="closeChangelogBtn">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="changelog-version">
+                <span class="changelog-badge">v1.5.8</span> <small style="color:var(--text-sub);">2026-09-18</small>
+                <h4>📸 아이폰/모바일 사진첩(카메라 롤) 바로 저장 지원 (Web Share API)</h4>
+                <ul>
+                    <li><strong>아이폰 사진첩 직행 저장 기능</strong>:
+                        <ul>
+                            <li>iOS Safari 보안 정책 상 일반 다운로드 파일이 '파일(Files)' 앱으로만 다운로드되던 한계 해소</li>
+                            <li>모바일에서 다운로드 시 <strong>네이티브 공유 창(Share Sheet)</strong>을 자동 호출하여 <strong>[이미지 저장]</strong> 탭 한 번으로 사진첩에 즉시 저장</li>
+                        </ul>
+                    </li>
+                    <li><strong>모바일 다운로드 안내 팁 추가</strong>:
+                        <ul>
+                            <li>다운로드 버튼 하단에 아이폰 사진첩 바로 저장 팁 문구 표시</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
             <div class="changelog-version">
                 <span class="changelog-badge">v1.5.7</span> <small style="color:var(--text-sub);">2026-09-18</small>
                 <h4>📱 아이폰15(iOS Safari) 화면 비율 및 여백 왜곡 버그 픽스</h4>
@@ -2282,7 +2302,34 @@
                 downloadName = downloadName.replace(/\.[^.]+$/, '.jpg');
             }
 
-            // 다운로드 링크 트리거
+            // 모바일 환경(iOS Safari / Android) Web Share API: 사진첩 바로 저장 지원
+            let sharedSuccessfully = false;
+            try {
+                const file = new File([blob], downloadName, { type: 'image/jpeg' });
+                if (isMobileDevice() && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: downloadName
+                    });
+                    sharedSuccessfully = true;
+                    downloadBtn.textContent = '✅ 사진첩 저장 / 공유 완료!';
+                    setTimeout(() => {
+                        downloadBtn.textContent = origBtnText;
+                        downloadBtn.disabled = false;
+                    }, 2500);
+                    return;
+                }
+            } catch (shareErr) {
+                if (shareErr.name === 'AbortError') {
+                    // 사용자가 시스템 공유 창을 닫은 경우 (정상 취소)
+                    downloadBtn.textContent = origBtnText;
+                    downloadBtn.disabled = false;
+                    return;
+                }
+                console.warn('Web Share failed, fallback to standard download link:', shareErr);
+            }
+
+            // PC 브라우저 또는 Share 미지원 환경: 표준 다운로드 링크 트리거
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = downloadName;
@@ -2344,6 +2391,12 @@
             closeChangelog();
         }
     });
+
+    // 모바일 기기 감지 시 안내 팁 표시
+    if (isMobileDevice()) {
+        const mobileTip = document.getElementById('mobileDownloadTip');
+        if (mobileTip) mobileTip.style.display = 'block';
+    }
 </script>
 
 </body>
