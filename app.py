@@ -661,6 +661,11 @@ if uploaded_file:
                 "SONY α (소니 알파 화이트 - 다크테마용)": "logos/sony_alpha_white.png",
                 "SONY (소니 워드마크 블랙)": "logos/sony_black.png",
                 "SONY (소니 워드마크 화이트 - 다크테마용)": "logos/sony_white.png",
+                # 소니 렌즈 시리즈
+                "SONY G Master (소니 지마스터 블랙)": "logos/sony_gmaster_black.png",
+                "SONY G Master (소니 지마스터 화이트 - 다크테마용)": "logos/sony_gmaster_white.png",
+                "SONY G (소니 G 렌즈 블랙)": "logos/sony_g_black.png",
+                "SONY G (소니 G 렌즈 화이트 - 다크테마용)": "logos/sony_g_white.png",
                 # 라이카
                 "LEICA (라이카 레드 닷 - 시그니처)": "logos/leica_red.png",
                 "LEICA (라이카 모노 블랙)": "logos/leica_black.png",
@@ -739,8 +744,12 @@ if uploaded_file:
                     default_idx = preset_names.index("CANON (캐논 시그니처 레드)")
                 elif any(k in lens_lower for k in ["fuji", "fujinon"]):
                     default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
-                elif any(k in lens_lower for k in ["sony", "fe ", "gm", "g master", " g ", "sel"]):
-                    default_idx = preset_names.index("SONY α (소니 알파 블랙)")
+                elif any(k in lens_lower for k in ["gm", "g master"]):
+                    default_idx = preset_names.index("SONY G Master (\uc18c\ub2c8 \uc9c0\ub9c8\uc2a4\ud130 \ube14\ub799)")
+                elif any(k in lens_lower for k in [" g ", "fe g"]):
+                    default_idx = preset_names.index("SONY G (\uc18c\ub2c8 G \ub80c\uc988 \ube14\ub799)")
+                elif any(k in lens_lower for k in ["sony", "fe ", "sel"]):
+                    default_idx = preset_names.index("SONY \u03b1 (\uc18c\ub2c8 \uc54c\ud30c \ube14\ub799)")
                 
                 # 렌즈에서 감지되지 않은 경우 바디로 폴백
                 if default_idx == 0:
@@ -793,8 +802,12 @@ if uploaded_file:
                         default_idx = preset_names.index("TAMRON (탐론 공식 블랙)")
                     elif any(k in lens_lower for k in ["viltrox"]):
                         default_idx = preset_names.index("VILTROX (빌트록스 공식 블랙)")
-                    elif any(k in lens_lower for k in ["sony", "fe ", "gm", "g master", " g ", "sel"]):
-                        default_idx = preset_names.index("SONY α (소니 알파 블랙)")
+                    elif any(k in lens_lower for k in ["gm", "g master"]):
+                        default_idx = preset_names.index("SONY G Master (\uc18c\ub2c8 \uc9c0\ub9c8\uc2a4\ud130 \ube14\ub799)")
+                    elif any(k in lens_lower for k in [" g ", "fe g"]):
+                        default_idx = preset_names.index("SONY G (\uc18c\ub2c8 G \ub80c\uc988 \ube14\ub799)")
+                    elif any(k in lens_lower for k in ["sony", "fe ", "sel"]):
+                        default_idx = preset_names.index("SONY \u03b1 (\uc18c\ub2c8 \uc54c\ud30c \ube14\ub799)")
                 
             logo_choice = st.selectbox("브랜드 로고 선택", preset_names, index=default_idx, key=f"logo_sel_{file_key}_{logo_target}")
             
