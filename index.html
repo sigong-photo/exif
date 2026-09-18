@@ -732,6 +732,18 @@
                             <option value="logos/laowa_cyan.png">LAOWA (라오와 시그니처 시안)</option>
                             <option value="logos/laowa_white.png">LAOWA (라오와 화이트)</option>
                         </optgroup>
+                        <optgroup label="파나소닉 / 루믹스 (PANASONIC / LUMIX)">
+                            <option value="logos/lumix_black.png">LUMIX (루믹스 공식 블랙)</option>
+                            <option value="logos/lumix_red.png">LUMIX (루믹스 레드 포인트 - 시그니처)</option>
+                            <option value="logos/lumix_white.png">LUMIX (루믹스 모노 화이트)</option>
+                            <option value="logos/panasonic_blue.png">PANASONIC (파나소닉 시그니처 블루)</option>
+                            <option value="logos/panasonic_black.png">PANASONIC (파나소닉 블랙)</option>
+                            <option value="logos/panasonic_white.png">PANASONIC (파나소닉 화이트)</option>
+                        </optgroup>
+                        <optgroup label="── ZEISS (짜이즈) ──">
+                            <option value="logos/zeiss_black.png">ZEISS (짜이즈 블랙)</option>
+                            <option value="logos/zeiss_white.png">ZEISS (짜이즈 화이트 - 다크테마용)</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1254,6 +1266,8 @@
         if (target === 'lens') {
             if (l.includes('laowa') || l.includes('venus') || l.includes('argus') || l.includes('zero-d') || l.includes('dreamer')) {
                 chosen = 'logos/laowa_black.png';
+            } else if (l.includes('zeiss') || l.includes('biogon') || l.includes('planar') || l.includes('distagon') || l.includes('otus') || l.includes('milvus') || l.includes('batis') || l.includes('loxia')) {
+                chosen = 'logos/zeiss_black.png';
             } else if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
                 chosen = 'logos/sigma_black.png';
             } else if (l.includes('tamron') || l.includes('di iii')) {
@@ -1270,14 +1284,18 @@
                 chosen = 'logos/canon_red.png';
             } else if (l.includes('fuji') || l.includes('fujinon')) {
                 chosen = 'logos/fujifilm_color.png';
-            } else if (l.includes('sony') || l.includes('fe ') || l.includes('gm') || l.includes('g master') || l.includes('sel')) {
+            } else if (l.includes('sony') || l.includes('fe ') || l.includes('gm') || l.includes('g master') || l.includes(' g ') || l.includes('sel')) {
                 chosen = 'logos/sony_alpha_black.png';
+            } else if (l.includes('lumix s') || l.includes('lumix g') || l.includes('lumix') || l.includes('panasonic') || l.includes('s-r') || l.includes('s-pro') || l.includes('h-')) {
+                chosen = 'logos/lumix_black.png';
             }
 
             // Fallback to body if lens didn't match
             if (!chosen) {
                 if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
                     chosen = 'logos/sony_alpha_black.png';
+                } else if (c.includes('panasonic') || c.includes('lumix') || c.includes('dc-s') || c.includes('dc-g') || c.includes('dmc-')) {
+                    chosen = 'logos/lumix_black.png';
                 } else if (c.includes('leica') || c.includes('m10') || c.includes('m11') || c.includes('sl2') || c.includes('q2') || c.includes('q3')) {
                     chosen = 'logos/leica_red.png';
                 } else if (c.includes('hasselblad') || c.includes('x1d') || c.includes('x2d') || c.includes('907x')) {
@@ -1296,6 +1314,8 @@
             // body
             if (c.includes('sony') || c.includes('ilce') || c.includes('alpha') || c.includes('a7') || c.includes('a1') || c.includes('a9')) {
                 chosen = 'logos/sony_alpha_black.png';
+            } else if (c.includes('panasonic') || c.includes('lumix') || c.includes('dc-s') || c.includes('dc-g') || c.includes('dmc-')) {
+                chosen = 'logos/lumix_black.png';
             } else if (c.includes('leica') || c.includes('m10') || c.includes('m11') || c.includes('sl2') || c.includes('q2') || c.includes('q3')) {
                 chosen = 'logos/leica_red.png';
             } else if (c.includes('hasselblad') || c.includes('x1d') || c.includes('x2d') || c.includes('907x')) {
@@ -1314,12 +1334,18 @@
             if (!chosen) {
                 if (l.includes('laowa') || l.includes('venus') || l.includes('argus') || l.includes('zero-d') || l.includes('dreamer')) {
                     chosen = 'logos/laowa_black.png';
+                } else if (l.includes('zeiss') || l.includes('biogon') || l.includes('planar') || l.includes('distagon') || l.includes('otus') || l.includes('milvus') || l.includes('batis') || l.includes('loxia')) {
+                    chosen = 'logos/zeiss_black.png';
+                } else if (l.includes('lumix s') || l.includes('lumix g') || l.includes('lumix') || l.includes('panasonic') || l.includes('s-r') || l.includes('s-pro') || l.includes('h-')) {
+                    chosen = 'logos/lumix_black.png';
                 } else if (l.includes('sigma') || l.includes('dg dn') || l.includes('contemporary') || l.includes('art') || l.includes('sports')) {
                     chosen = 'logos/sigma_black.png';
                 } else if (l.includes('tamron') || l.includes('di iii')) {
                     chosen = 'logos/tamron_black.png';
                 } else if (l.includes('viltrox')) {
                     chosen = 'logos/viltrox_black.png';
+                } else if (l.includes('sony') || l.includes('fe ') || l.includes('gm') || l.includes('g master') || l.includes(' g ') || l.includes('sel')) {
+                    chosen = 'logos/sony_alpha_black.png';
                 }
             }
         }
