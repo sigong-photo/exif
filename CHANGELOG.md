@@ -3,6 +3,23 @@
 이 프로젝트의 모든 주요 업데이트 및 개선 내역이 기록됩니다.
 
 ---
+## [v1.5.3] - 2026-09-18
+
+### 👑 페이즈원(PHASE ONE) 중형 카메라 정보 자동화 & 공식 브랜드 로고 4종 탑재
+- **PHASE ONE 공식 CI 벡터 로고 4종 제작 및 탑재**:
+  - **PHASE ONE 시그니처 컬러 (`logos/phaseone_color.png`)**: 브랜드 시그니처 시안(`ONE #00B9F2`)과 블랙 워드마크(`PHASE #000000`)의 밝은 프레임용 표준 로고
+  - **PHASE ONE 공식 블랙 (`logos/phaseone_black.png`)**: 깔끔한 미니멀리즘 모노크롬 블랙
+  - **PHASE ONE 모노 화이트 (`logos/phaseone_white.png`)**: 다크/블랙 프레임용 고대비 화이트 로고
+  - **PHASE ONE 화이트 & 시안 (`logos/phaseone_white_cyan.png`)**: 다크 프레임에서 상징적인 시안 포인트가 돋보이는 프리미엄 다크테마 로고
+- **페이즈원 중형 카메라 메타데이터 자동 포맷팅**:
+  - `Make`가 `Phase One` 또는 `Phase One A/S`인 경우 제조사명을 깔끔하게 정리
+  - `IQ4 150MP`, `IQ3 100MP`, `P45+` 등 디지털백 모델명만 기록된 EXIF에서 `Phase One IQ4 150MP`와 같이 브랜드명이 포함된 완성형 명칭으로 자동 보정
+- **페이즈원 스마트 자동 감지 엔진 (바디 & 렌즈)**:
+  - 바디 키워드(`phase one`, `phaseone`, `iq4`, `iq3`, `iq2`, `iq1`, `p65`, `p45`, `p40`, `p30`, `p25`, `p20`, `645df`, `achromatic`, `ixh`, `ixm`, `ixu` 등) 감지 시 1순위 페이즈원 로고 추천
+  - 슈나이더/로덴스톡 중형 렌즈 키워드(`schneider kreuznach`, `schneider`, `kreuznach`, `rodenstock`, `digaron` 등) 감지 지원
+  - Streamlit(`app.py`) 및 웹 앱(`index.html`) 양쪽 모두 완벽 반영
+
+---
 ## [v1.5.2] - 2026-09-18
 
 ### 🔭 짜이즈(ZEISS) 렌즈 로고 추가 & 소니 GM/G 렌즈 감지 강화 & 파나소닉 렌즈 키워드 확장

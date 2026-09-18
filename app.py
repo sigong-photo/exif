@@ -542,7 +542,18 @@ if uploaded_file:
     file_key = f"{uploaded_file.name}_{uploaded_file.size}"
     
     # 1. 원본 메타데이터 기본값 파싱
-    default_camera = clean_str(exif.get("Model") or exif.get("CameraModelName") or exif.get("Make") or "")
+    cam_make_val = clean_str(exif.get("Make") or "")
+    cam_model_val = clean_str(exif.get("Model") or exif.get("CameraModelName") or "")
+    if any(p in cam_make_val.lower() for p in ["phase one", "phaseone"]):
+        if cam_model_val:
+            if "phase one" not in cam_model_val.lower():
+                default_camera = clean_str(f"Phase One {cam_model_val}")
+            else:
+                default_camera = clean_str(re.sub(r'(?i)phase one a/s', 'Phase One', cam_model_val))
+        else:
+            default_camera = "Phase One"
+    else:
+        default_camera = clean_str(cam_model_val or cam_make_val or "")
     lens_model_val = exif.get("LensModel") or exif.get("LensSpecification") or ""
     lens_make_val = exif.get("LensMake") or ""
     if lens_make_val and lens_model_val and str(lens_make_val).lower() not in str(lens_model_val).lower():
@@ -711,6 +722,11 @@ if uploaded_file:
                 # 짜이즈 (ZEISS)
                 "ZEISS (짜이즈 블랙)": "logos/zeiss_black.png",
                 "ZEISS (짜이즈 화이트 - 다크테마용)": "logos/zeiss_white.png",
+                # 페이즈원 (PHASE ONE)
+                "PHASE ONE (페이즈원 시그니처 컬러)": "logos/phaseone_color.png",
+                "PHASE ONE (페이즈원 공식 블랙)": "logos/phaseone_black.png",
+                "PHASE ONE (페이즈원 모노 화이트 - 다크테마용)": "logos/phaseone_white.png",
+                "PHASE ONE (페이즈원 화이트 & 시안 - 다크테마용)": "logos/phaseone_white_cyan.png",
                 # 직접 업로드
                 "직접 이미지 업로드 (PNG)": "custom",
             }
@@ -722,7 +738,9 @@ if uploaded_file:
             
             default_idx = 0
             if logo_target == "🔍 렌즈 제조사":
-                if any(k in lens_lower for k in ["laowa", "venus optics", "venus", "argus", "zero-d", "dreamer"]):
+                if any(k in lens_lower for k in ["phase one", "phaseone", "schneider kreuznach", "schneider", "kreuznach", "rodenstock", "digaron"]):
+                    default_idx = preset_names.index("PHASE ONE (페이즈원 시그니처 컬러)")
+                elif any(k in lens_lower for k in ["laowa", "venus optics", "venus", "argus", "zero-d", "dreamer"]):
                     default_idx = preset_names.index("LAOWA (라오와 공식 블랙)")
                 elif any(k in lens_lower for k in ["zeiss", "biogon", "planar", "distagon", "otus", "milvus", "batis", "loxia"]):
                     default_idx = preset_names.index("ZEISS (짜이즈 블랙)")
@@ -745,15 +763,17 @@ if uploaded_file:
                 elif any(k in lens_lower for k in ["fuji", "fujinon"]):
                     default_idx = preset_names.index("FUJIFILM (후지필름 오리지널 컬러)")
                 elif any(k in lens_lower for k in ["gm", "g master"]):
-                    default_idx = preset_names.index("SONY G Master (\uc18c\ub2c8 \uc9c0\ub9c8\uc2a4\ud130 \ube14\ub799)")
+                    default_idx = preset_names.index("SONY G Master (소니 지마스터 블랙)")
                 elif any(k in lens_lower for k in [" g ", "fe g"]):
-                    default_idx = preset_names.index("SONY G (\uc18c\ub2c8 G \ub80c\uc988 \ube14\ub799)")
+                    default_idx = preset_names.index("SONY G (소니 G 렌즈 블랙)")
                 elif any(k in lens_lower for k in ["sony", "fe ", "sel"]):
-                    default_idx = preset_names.index("SONY \u03b1 (\uc18c\ub2c8 \uc54c\ud30c \ube14\ub799)")
+                    default_idx = preset_names.index("SONY α (소니 알파 블랙)")
                 
                 # 렌즈에서 감지되지 않은 경우 바디로 폴백
                 if default_idx == 0:
-                    if any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
+                    if any(k in cam_lower for k in ["phase one", "phaseone", "iq4", "iq3", "iq2", "iq1", "p65", "p45", "p40", "p30", "p25", "p20", "645df", "achromatic", "ixh", "ixm", "ixu"]):
+                        default_idx = preset_names.index("PHASE ONE (페이즈원 시그니처 컬러)")
+                    elif any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
                         default_idx = preset_names.index("SONY α (소니 알파 블랙)")
                     elif any(k in cam_lower for k in ["panasonic", "lumix", "dc-s", "dc-g", "dmc-"]):
                         default_idx = preset_names.index("LUMIX (루믹스 공식 블랙)")
@@ -771,7 +791,9 @@ if uploaded_file:
                         default_idx = preset_names.index("SIGMA (시그마 공식 블랙)")
             else: # 📷 카메라 바디 제조사
 
-                if any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
+                if any(k in cam_lower for k in ["phase one", "phaseone", "iq4", "iq3", "iq2", "iq1", "p65", "p45", "p40", "p30", "p25", "p20", "645df", "achromatic", "ixh", "ixm", "ixu"]):
+                    default_idx = preset_names.index("PHASE ONE (페이즈원 시그니처 컬러)")
+                elif any(k in cam_lower for k in ["sony", "ilce", "alpha", "a7", "a9", "a1"]):
                     default_idx = preset_names.index("SONY α (소니 알파 블랙)")
                 elif any(k in cam_lower for k in ["panasonic", "lumix", "dc-s", "dc-g", "dmc-"]):
                     default_idx = preset_names.index("LUMIX (루믹스 공식 블랙)")
@@ -790,7 +812,9 @@ if uploaded_file:
                 
                 # 바디에서 감지되지 않은 경우 렌즈로 폴백
                 if default_idx == 0:
-                    if any(k in lens_lower for k in ["laowa", "venus optics", "venus", "argus", "zero-d", "dreamer"]):
+                    if any(k in lens_lower for k in ["phase one", "phaseone", "schneider kreuznach", "schneider", "kreuznach", "rodenstock", "digaron"]):
+                        default_idx = preset_names.index("PHASE ONE (페이즈원 시그니처 컬러)")
+                    elif any(k in lens_lower for k in ["laowa", "venus optics", "venus", "argus", "zero-d", "dreamer"]):
                         default_idx = preset_names.index("LAOWA (라오와 공식 블랙)")
                     elif any(k in lens_lower for k in ["zeiss", "biogon", "planar", "distagon", "otus", "milvus", "batis", "loxia"]):
                         default_idx = preset_names.index("ZEISS (짜이즈 블랙)")
@@ -803,11 +827,11 @@ if uploaded_file:
                     elif any(k in lens_lower for k in ["viltrox"]):
                         default_idx = preset_names.index("VILTROX (빌트록스 공식 블랙)")
                     elif any(k in lens_lower for k in ["gm", "g master"]):
-                        default_idx = preset_names.index("SONY G Master (\uc18c\ub2c8 \uc9c0\ub9c8\uc2a4\ud130 \ube14\ub799)")
+                        default_idx = preset_names.index("SONY G Master (소니 지마스터 블랙)")
                     elif any(k in lens_lower for k in [" g ", "fe g"]):
-                        default_idx = preset_names.index("SONY G (\uc18c\ub2c8 G \ub80c\uc988 \ube14\ub799)")
+                        default_idx = preset_names.index("SONY G (소니 G 렌즈 블랙)")
                     elif any(k in lens_lower for k in ["sony", "fe ", "sel"]):
-                        default_idx = preset_names.index("SONY \u03b1 (\uc18c\ub2c8 \uc54c\ud30c \ube14\ub799)")
+                        default_idx = preset_names.index("SONY α (소니 알파 블랙)")
                 
             logo_choice = st.selectbox("브랜드 로고 선택", preset_names, index=default_idx, key=f"logo_sel_{file_key}_{logo_target}")
             
